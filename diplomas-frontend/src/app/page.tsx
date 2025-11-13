@@ -1,0 +1,6 @@
+// src/app/page.tsx
+import { redirect } from 'next/navigation';
+
+export default function Root() {
+  redirect('/home'); // <— aquí defines la página de inicio
+}

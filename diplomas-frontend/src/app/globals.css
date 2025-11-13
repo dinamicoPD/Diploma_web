@@ -1,0 +1,309 @@
+/* ===== Paleta basada en el logo Dinámico ===== */
+:root{
+  /* Colores de marca */
+  --brand-ink: #0E3E4D;          /* azul verdoso oscuro (texto principal) */
+  --brand-ink-70: rgba(14,62,77,.7);
+  --brand-primary: #0E8596;      /* teal (color principal) */
+  --brand-accent: #F2B01E;       /* dorado (acento) */
+  --brand-blue: #1E88E5;         /* azul secundario */
+  --brand-red: #C0392B;          /* rojo del logo */
+  --brand-green: #5B8E3E;        /* verde del logo */
+  --brand-bg: #F6FAFB;           /* fondo suave */
+
+  /* Overrides Bootstrap 5.3 */
+  --bs-primary: var(--brand-primary);
+  --bs-primary-rgb: 14,133,150;
+  --bs-secondary: var(--brand-ink);
+  --bs-secondary-rgb: 14,62,77;
+  --bs-success: var(--brand-green);
+  --bs-warning: var(--brand-accent);
+  --bs-danger: var(--brand-red);
+  --bs-info: var(--brand-blue);
+
+  --bs-link-color: var(--brand-ink);
+  --bs-link-hover-color: #0b2e39;
+
+  --bs-body-font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", Helvetica, sans-serif;
+
+  /* Unidad para exportación */
+  --cm: 37.79527559055118px; /* 96px / 2.54 ≈ 37.795px */
+}
+
+/* ===== Fondo general y ritmo vertical ===== */
+html, body { background: linear-gradient(180deg,#fff 0,var(--brand-bg) 100%); }
+.container { max-width: 1200px; }
+
+/* ===== Navbar de marca ===== */
+.brand-navbar{
+  background: #fff;
+  border-bottom: 2px solid rgba(14,133,150,.08);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  backdrop-filter: saturate(1.1) blur(6px);
+}
+.text-brand-ink { color: var(--brand-ink) !important; }
+.text-brand-ink-70 { color: var(--brand-ink-70) !important; }
+.nav-pill{
+  margin: .125rem .25rem;
+  border-radius: 999px;
+  padding: .35rem .9rem;
+  color: var(--brand-ink);
+}
+.nav-pill:hover{ background: rgba(14,133,150,.10); }
+.nav-pill.active{ background: var(--brand-primary); color: #fff !important; }
+
+/* ===== Cards / secciones (aplica en editor, lotes y home) ===== */
+.brand-card{
+  background: #fff;
+  border: 1px solid rgba(14,62,77,.08);
+  border-radius: 16px;
+  box-shadow: 0 6px 22px rgba(14,62,77,.08);
+  padding: 16px;
+}
+.brand-section + .brand-section{ margin-top: 24px; }
+
+/* ===== Hero de portada ===== */
+.page-hero{
+  background:
+    radial-gradient(1000px 180px at 20% -60%, rgba(242,176,30,.10), transparent 60%),
+    radial-gradient(1000px 180px at 80% -60%, rgba(14,133,150,.12), transparent 60%),
+    var(--brand-bg);
+  border: 1px solid rgba(14,62,77,.06);
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(14,62,77,.08);
+  padding: 28px 24px;
+}
+.brand-logo{ height: 36px; width: auto; object-fit: contain; display: block; }
+.brand-logo-lg{ height: 64px; width: auto; object-fit: contain; display: block; }
+
+/* ===== Botones suaves ===== */
+.btn-brand{
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+.btn-brand:hover{ filter: brightness(.95); }
+.btn-outline-brand{
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: transparent;
+}
+.btn-outline-brand:hover{ background: var(--brand-primary); color: #fff; }
+
+/* =================================================================== */
+/* ========================   EDITOR / LIENZO   ======================= */
+/* =================================================================== */
+
+/* Papel base */
+.paper{
+  position: relative;
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(0,0,0,.12);
+  overflow: hidden; /* evita que algo se salga del papel */
+  isolation: isolate;
+  border-radius: 8px;
+}
+
+/* Tamaños del papel (96 px = 1in) */
+.letter-portrait{  width: 8.5in;  height: 11in;  }
+.letter-landscape{ width: 11in;   height: 8.5in; }
+.legal-portrait{   width: 8.5in;  height: 13in;  }
+.legal-landscape{  width: 13in;   height: 8.5in; }
+
+/* Imagen de fondo a tamaño completo */
+.paper-bg{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Muestra la imagen completa sin recortar */
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+/* Capa de guías */
+.paper-guides{ position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+
+/* Regla superior / izquierda */
+.ruler-top{
+  position: absolute; left: 0; top: 0; right: 0; height: 24px;
+  background:
+    repeating-linear-gradient(to right, rgba(14,62,77,.25) 0 1px, transparent 1px var(--cm)),
+    repeating-linear-gradient(to right, rgba(14,62,77,.45) 0 2px, transparent 2px calc(var(--cm) * 5));
+  background-position: left bottom; background-repeat: repeat-x;
+}
+.ruler-left{
+  position: absolute; left: 0; top: 0; bottom: 0; width: 24px;
+  background:
+    repeating-linear-gradient(to bottom, rgba(14,62,77,.25) 0 1px, transparent 1px var(--cm)),
+    repeating-linear-gradient(to bottom, rgba(14,62,77,.45) 0 2px, transparent 2px calc(var(--cm) * 5));
+  background-position: right top; background-repeat: repeat-y;
+}
+
+/* Cuadrícula 1 cm con fuertes cada 5 cm */
+.paper-grid{
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(14,62,77,.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14,62,77,.12) 1px, transparent 1px),
+    linear-gradient(to right, rgba(14,62,77,.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14,62,77,.25) 1px, transparent 1px);
+  background-size:
+    var(--cm) var(--cm),
+    var(--cm) var(--cm),
+    calc(var(--cm) * 5) calc(var(--cm) * 5),
+    calc(var(--cm) * 5) calc(var(--cm) * 5);
+  z-index: 1;
+}
+
+/* Margen seguro 2 cm */
+.margin-box{
+  position: absolute;
+  top: calc(var(--cm) * 2);
+  left: calc(var(--cm) * 2);
+  right: calc(var(--cm) * 2);
+  bottom: calc(var(--cm) * 2);
+  border: 2px dashed rgba(14,133,150,.55);
+  border-radius: 4px;
+  z-index: 1;
+}
+
+/* Etiqueta tamaño */
+.paper-size-badge{
+  position: absolute; right: 8px; top: 8px;
+  background: rgba(14,62,77,.85); color: #fff;
+  padding: 2px 8px; border-radius: 8px; font-size: 12px; z-index: 2;
+}
+
+/* Contenido editable */
+.content{ position: relative; z-index: 3; width: 100%; height: 100%; }
+.canvas-area{ position: absolute; inset: 0; }
+
+/* Selección (react-rnd) */
+.rnd-selected{ outline: 2px solid var(--brand-primary); box-shadow: 0 0 0 4px rgba(14,133,150,.2); }
+
+/* Texto dentro del lienzo */
+.canvas-text{
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  word-break: break-word;
+}
+
+/* Panel lateral fijo (Editor/Lotes) */
+.sticky-panel{
+  position: sticky;
+  top: 84px; /* debajo del navbar */
+  max-height: calc(100dvh - 96px);
+  overflow: auto;
+
+  /* Apariencia de card pro */
+  background: #fff;
+  border: 1px solid rgba(14,62,77,.08);
+  border-radius: 16px;
+  box-shadow: 0 6px 22px rgba(14,62,77,.08);
+  padding: 16px;
+}
+
+/* Agrandar un poco en pantallas grandes para ver bien tablas/props */
+@media (min-width: 1200px){
+  .sticky-panel{ padding: 18px; }
+}
+@media (min-width: 1400px){
+  .sticky-panel{ padding: 20px; }
+}
+
+/* Botones compactos en props */
+.btn-prop{ padding-inline: .6rem; }
+
+/* Oculta guías al exportar (el Editor pone data-exporting="true") */
+.paper[data-exporting="true"] .paper-guides{ display: none !important; }
+
+/* Scrolls */
+*{ scrollbar-width: thin; scrollbar-color: rgba(14,133,150,.35) transparent; }
+*::-webkit-scrollbar{ height: 10px; width: 10px; }
+*::-webkit-scrollbar-thumb{ background: rgba(14,133,150,.35); border-radius: 8px; }
+*::-webkit-scrollbar-track{ background: transparent; }
+
+/* Área segura (margen 2 cm) donde se colocan los elementos */
+.safe-area{
+  position: absolute;
+  top: calc(var(--cm) * 2);
+  left: calc(var(--cm) * 2);
+  right: calc(var(--cm) * 2);
+  bottom: calc(var(--cm) * 2);
+}
+
+/* ===== Tablas más legibles (Lotes) ===== */
+.table-sticky thead th{
+  position: sticky; top: 0; z-index: 1; background: #fff;
+  border-bottom: 2px solid rgba(14,62,77,.12);
+}
+.table td, .table th{ vertical-align: middle; }
+
+/* ===== Progreso (Lotes PDF) ===== */
+.progress{ height: 10px; border-radius: 999px; overflow: hidden; }
+.progress-bar{ background: linear-gradient(90deg, var(--brand-primary), #16a9bd); }
+
+/* ===== Pequeños utilitarios ===== */
+.shadow-soft{ box-shadow: 0 8px 26px rgba(14,62,77,.10) !important; }
+.round-16{ border-radius: 16px !important; }
+
+/* ===== Viewport/tarjeta del lienzo (más ancho y con scroll) ===== */
+.paper-viewport{
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(14,62,77,.08);
+  padding: 16px 20px;
+  overflow: auto;                /* si la hoja es grande, aparece scroll */
+  min-height: calc(100dvh - 160px);
+}
+
+.paper-holder{
+  /* centra el papel dentro de la tarjeta */
+  display: grid;
+  place-items: start center;
+  min-width: 100%;
+}
+
+/* ===== Editor canvas full height ===== */
+.editor-canvas-col {
+  height: calc(100vh - 120px);
+}
+
+.editor-canvas-scroll {
+  height: 100%;
+  overflow: auto;
+}
+
+/* ===== Lotes preview full height ===== */
+.lotes-preview-col {
+  height: calc(100vh - 120px);
+  overflow: auto;
+}
+
+/* ===== Page content left margin ===== */
+.page-content {
+  padding-left: var(--cm);
+}
+
+/* ===== Responsive adjustments ===== */
+@media (max-width: 768px) {
+  .paper {
+    transform: scale(0.4);
+    transform-origin: top left;
+  }
+
+  .paper-viewport {
+    min-height: auto;
+    overflow-x: auto;
+  }
+
+  .sticky-panel {
+    position: static;
+    max-height: none;
+  }
+}
+
