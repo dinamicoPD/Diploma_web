@@ -505,9 +505,12 @@ service firebase.storage {
 
 ## 📞 Soporte y Contacto
 
-**Desarrollador:** Kilo Code
+**Desarrollador:**DinamicoPD
+
 **Email:** soporte@diplomas.com
+
 **Repositorio:** https://github.com/dinamicoPD/Diploma_web
+
 **Documentación:** https://diplomas.com/docs
 
 ---
