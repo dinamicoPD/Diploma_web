@@ -76,7 +76,6 @@ const buildCiudadDepto = (row: Record<string, unknown>): string => {
 
 /* ==== helpers de exportación ==== */
 const waitForFonts = async () => {
-  // @ts-expect-error: document.fonts puede no existir en todos los navegadores
   if (document.fonts?.ready) { try { await document.fonts.ready; } catch {} }
 };
 const waitForImages = async (root: HTMLElement) => {
