@@ -290,8 +290,7 @@ SOLUCIÓN: Guarda el Excel con codificación UTF-8
 
 Para soporte técnico o reportar problemas:
 
-- Email: soporte@diplomas.com
-- Documentación: https://diplomas.com/docs
+- Email: soporte@dinamicopd.com
 - Versión actual: 2.0 (Noviembre 2025)
 
 ================================================================================
