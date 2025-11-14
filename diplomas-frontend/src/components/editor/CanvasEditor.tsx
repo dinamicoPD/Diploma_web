@@ -202,8 +202,8 @@ export default function CanvasEditor({ initialFormat = 'letter' as Format }) {
     const r = new FileReader(); r.onload = async () => {
       const dataUrl = String(r.result);
       const filename = `image_${Date.now()}_${f.name}`;
-      await saveImage(dataUrl, filename);
-      addImageFromDataUrl(dataUrl);
+      const downloadURL = await saveImage(dataUrl, filename);
+      addImageFromDataUrl(downloadURL);
     }; r.readAsDataURL(f);
   };
   const onPickBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -211,8 +211,8 @@ export default function CanvasEditor({ initialFormat = 'letter' as Format }) {
     const r = new FileReader(); r.onload = async () => {
       const dataUrl = String(r.result);
       const filename = `background_${Date.now()}_${f.name}`;
-      await saveImage(dataUrl, filename);
-      setBackgroundUrl(dataUrl);
+      const downloadURL = await saveImage(dataUrl, filename);
+      setBackgroundUrl(downloadURL);
     }; r.readAsDataURL(f);
   };
 
@@ -436,12 +436,16 @@ export default function CanvasEditor({ initialFormat = 'letter' as Format }) {
     if (!files || !files.length) return;
     const list = Array.from(files);
     for (const f of list) {
+      if (f.size > 10 * 1024 * 1024) { // 10MB limit
+        alert(`Fuente ${f.name} es demasiado grande. Máximo 10MB.`);
+        continue;
+      }
       const fmt = guessFormat(f.name);
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const r = new FileReader();
-        r.onload = () => resolve(`data:${mimeFor(fmt)};base64,${btoa(String.fromCharCode(...new Uint8Array(r.result as ArrayBuffer)))}`);
+        r.onload = () => resolve(String(r.result));
         r.onerror = () => reject(r.error);
-        r.readAsArrayBuffer(f);
+        r.readAsDataURL(f);
       });
       const base = f.name.replace(/\.(woff2?|ttf|otf)$/i, '');
       const family = base.replace(/[_\-]+/g,' ').trim(); // nombre legible
@@ -485,8 +489,8 @@ export default function CanvasEditor({ initialFormat = 'letter' as Format }) {
     r.onload = async () => {
       const dataUrl = String(r.result);
       const filename = `medal_${place}_${Date.now()}_${f.name}`;
-      await saveImage(dataUrl, filename);
-      setMedalImages(prev => ({ ...prev, [place]: dataUrl }));
+      const downloadURL = await saveImage(dataUrl, filename);
+      setMedalImages(prev => ({ ...prev, [place]: downloadURL }));
     };
     r.readAsDataURL(f);
     e.currentTarget.value = '';

@@ -1,155 +1,119 @@
 const express = require('express');
 const router = express.Router();
-const { Design } = require('../models/Design');
-const { Element } = require('../models/Element');
-const { Image } = require('../models/Image');
+const { db } = require('../db');
+const { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, Timestamp } = require('firebase/firestore');
 
 // Listar todos
 router.get('/', async (_req, res) => {
-  const items = await Design.findAll({ order: [['updatedAt', 'DESC']] });
-  res.json(items);
+  try {
+    const q = query(collection(db, 'designs'), orderBy('updatedAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    const items = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+    }));
+    res.json(items);
+  } catch (error) {
+    console.error('Error fetching designs:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
 });
 
 // Obtener uno por id
 router.get('/:id', async (req, res) => {
-  const item = await Design.findByPk(req.params.id);
-  if (!item) return res.status(404).json({ message: 'No encontrado' });
+  try {
+    const docRef = doc(db, 'designs', req.params.id);
+    const docSnap = await getDoc(docRef);
 
-  // Fetch elements
-  const elements = await Element.findAll({ where: { designId: req.params.id } });
+    if (!docSnap.exists()) {
+      return res.status(404).json({ message: 'No encontrado' });
+    }
 
-  // Transform to match old structure
-  const data = { ...item.data };
-
-  // Handle background image
-  if (data.backgroundImageId) {
-    const bgImage = await Image.findByPk(data.backgroundImageId);
-    if (bgImage) data.backgroundUrl = bgImage.dataUrl;
-    delete data.backgroundImageId;
+    const data = docSnap.data();
+    res.json({
+      id: docSnap.id,
+      ...data,
+      createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error fetching design:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
-
-  // Handle elements
-  let processedElements = [];
-  if (elements.length > 0) {
-    processedElements = await Promise.all(elements.map(async el => {
-      const props = { ...el.properties };
-      if (el.type === 'image' && props.imageId) {
-        const img = await Image.findByPk(props.imageId);
-        if (img) props.src = img.dataUrl;
-        delete props.imageId;
-      }
-      return {
-        id: el.id,
-        type: el.type,
-        x: el.x, y: el.y, w: el.w, h: el.h, z: el.z,
-        ...props
-      };
-    }));
-  } else if (item.data.elements) {
-    // Fallback for old designs
-    processedElements = item.data.elements;
-  }
-  data.elements = processedElements;
-
-  res.json({ ...item.toJSON(), data });
 });
 
 // Crear nuevo
 router.post('/', async (req, res) => {
-  const { name, data, medalImages } = req.body || {};
-  if (!name || !data) return res.status(400).json({ message: 'name y data son obligatorios' });
+  try {
+    const { name, data, medalImages } = req.body || {};
+    if (!name || !data) return res.status(400).json({ message: 'name y data son obligatorios' });
 
-  const designData = { format: data.format, orientation: data.orientation, dpi: data.dpi, medalImages: data.medalImages };
+    const docRef = await addDoc(collection(db, 'designs'), {
+      name,
+      data,
+      medal_images: medalImages,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    });
 
-  // Handle background image
-  if (data.backgroundUrl) {
-    const bgImage = await Image.create({ dataUrl: data.backgroundUrl });
-    designData.backgroundImageId = bgImage.id;
+    res.status(201).json({
+      id: docRef.id,
+      name,
+      data,
+      medal_images: medalImages,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error creating design:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
-
-  const created = await Design.create({
-    name,
-    data: designData,
-    medal_images: medalImages ?? null
-  });
-
-  if (data.elements && Array.isArray(data.elements)) {
-    for (const el of data.elements) {
-      const properties = {};
-      if (el.type === 'text') {
-        Object.assign(properties, { text: el.text, fontSize: el.fontSize, color: el.color, fontFamily: el.fontFamily, bold: el.bold, italic: el.italic, align: el.align });
-      } else if (el.type === 'image') {
-        const img = await Image.create({ dataUrl: el.src });
-        Object.assign(properties, { imageId: img.id, lockAspect: el.lockAspect });
-      } else { // medal
-        Object.assign(properties, { previewVariant: el.previewVariant, lockAspect: el.lockAspect });
-      }
-      await Element.create({
-        designId: created.id,
-        type: el.type,
-        x: el.x, y: el.y, w: el.w, h: el.h, z: el.z,
-        properties
-      });
-    }
-  }
-
-  res.status(201).json(created);
 });
 
 // Actualizar
 router.put('/:id', async (req, res) => {
-  const { name, data, medalImages } = req.body || {};
-  const item = await Design.findByPk(req.params.id);
-  if (!item) return res.status(404).json({ message: 'No encontrado' });
+  try {
+    const { name, data, medalImages } = req.body || {};
+    const docRef = doc(db, 'designs', req.params.id);
 
-  if (name) item.name = name;
-  if (data) {
-    const designData = { format: data.format, orientation: data.orientation, dpi: data.dpi, medalImages: data.medalImages };
+    const updateData = {
+      updatedAt: Timestamp.now()
+    };
 
-    // Handle background image
-    if (data.backgroundUrl) {
-      const bgImage = await Image.create({ dataUrl: data.backgroundUrl });
-      designData.backgroundImageId = bgImage.id;
+    if (name !== undefined) updateData.name = name;
+    if (data !== undefined) updateData.data = data;
+    if (medalImages !== undefined) updateData.medal_images = medalImages;
+
+    await updateDoc(docRef, updateData);
+
+    res.json({
+      id: req.params.id,
+      name,
+      data,
+      medal_images: medalImages,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error updating design:', error);
+    if (error.code === 'not-found') {
+      return res.status(404).json({ message: 'No encontrado' });
     }
-
-    item.data = designData;
-
-    // Delete old elements
-    await Element.destroy({ where: { designId: req.params.id } });
-
-    // Create new elements
-    if (data.elements && Array.isArray(data.elements)) {
-      for (const el of data.elements) {
-        const properties = {};
-        if (el.type === 'text') {
-          Object.assign(properties, { text: el.text, fontSize: el.fontSize, color: el.color, fontFamily: el.fontFamily, bold: el.bold, italic: el.italic, align: el.align });
-        } else if (el.type === 'image') {
-          const img = await Image.create({ dataUrl: el.src });
-          Object.assign(properties, { imageId: img.id, lockAspect: el.lockAspect });
-        } else { // medal
-          Object.assign(properties, { previewVariant: el.previewVariant, lockAspect: el.lockAspect });
-        }
-        await Element.create({
-          designId: req.params.id,
-          type: el.type,
-          x: el.x, y: el.y, w: el.w, h: el.h, z: el.z,
-          properties
-        });
-      }
-    }
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
-  if (typeof medalImages !== 'undefined') item.medal_images = medalImages;
-
-  await item.save();
-  res.json(item);
 });
 
 // Eliminar
 router.delete('/:id', async (req, res) => {
-  const item = await Design.findByPk(req.params.id);
-  if (!item) return res.status(404).json({ message: 'No encontrado' });
-  await item.destroy(); // Elements deleted automatically due to CASCADE
-  res.json({ ok: true });
+  try {
+    const docRef = doc(db, 'designs', req.params.id);
+    await deleteDoc(docRef);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error deleting design:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
 });
 
 module.exports = router;

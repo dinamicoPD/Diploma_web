@@ -1,15 +1,15 @@
 const express = require('express');
 const cors = require('cors');
-const { initDb, sequelize } = require('./db');
+const { initDb } = require('./db');
 const designsRoutes = require('./routes/designs');
 const fontsRoutes = require('./routes/fonts');
+const elementsRoutes = require('./routes/elements');
+const imagesRoutes = require('./routes/images');
 require('dotenv').config();
 
 async function main() {
-  // 1) Conectar a la BD
+  // 1) Inicializar Firebase
   await initDb();
-  // 2) Crear tablas si no existen (NO borra datos)
-  await sequelize.sync();
 
   const app = express();
 
@@ -27,6 +27,12 @@ async function main() {
 
   // Rutas de fuentes
   app.use('/api/fonts', fontsRoutes);
+  
+  // Rutas de elementos
+  app.use('/api/elements', elementsRoutes);
+  
+  // Rutas de imágenes
+  app.use('/api/images', imagesRoutes);
 
   const port = Number(process.env.PORT || 4000);
   app.listen(port, () => {
