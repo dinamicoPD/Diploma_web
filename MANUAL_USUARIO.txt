@@ -1,0 +1,299 @@
+================================================================================
+                    MANUAL DE USUARIO - SISTEMA DE DIPLOMAS
+================================================================================
+
+Fecha de creación: Noviembre 2025
+Versión: 2.0
+
+================================================================================
+ÍNDICE
+================================================================================
+
+1. INTRODUCCIÓN
+2. REQUISITOS DEL SISTEMA
+3. ESTRUCTURA GENERAL DE LA APLICACIÓN
+4. PÁGINA DE INICIO (HOME)
+   4.1 Descarga de Plantillas
+   4.2 Plantilla de Festivales
+   4.3 Plantilla de Grado
+5. PÁGINA DEL EDITOR
+   5.1 Acceso al Editor
+   5.2 Creación de un Nuevo Diploma
+   5.3 Elementos Disponibles
+   5.4 Guardado de Diseños
+6. PÁGINA DE LOTES
+   6.1 Preparación del Archivo Excel
+   6.2 Carga del Archivo Excel
+   6.3 Vinculación de Campos
+   6.4 Generación de Diplomas
+   6.5 Exportación a PDF
+7. FUNCIONALIDADES AVANZADAS
+   7.1 Medallas Personalizadas
+   7.2 Fuentes y Estilos
+   7.3 Campos Dinámicos
+8. SOLUCIÓN DE PROBLEMAS
+9. CONTACTO Y SOPORTE
+
+================================================================================
+1. INTRODUCCIÓN
+================================================================================
+
+El Sistema de Diplomas es una aplicación web que permite diseñar y generar
+diplomas de manera masiva desde archivos Excel. La aplicación consta de tres
+módulos principales:
+
+- HOME: Página de inicio con descarga de plantillas
+- EDITOR: Herramienta para diseñar diplomas
+- LOTES: Procesamiento masivo de diplomas desde Excel
+
+================================================================================
+2. REQUISITOS DEL SISTEMA
+================================================================================
+
+Navegador web moderno (Chrome, Firefox, Safari, Edge)
+Conexión a internet
+Microsoft Excel o similar para editar plantillas
+Adobe Acrobat Reader para visualizar PDFs (opcional)
+
+================================================================================
+3. ESTRUCTURA GENERAL DE LA APLICACIÓN
+================================================================================
+
+La aplicación cuenta con una barra de navegación superior que permite acceder
+a las diferentes secciones:
+
+- HOME: Página principal
+- EDITOR: Diseño de diplomas
+- LOTES: Procesamiento masivo
+
+================================================================================
+4. PÁGINA DE INICIO (HOME)
+================================================================================
+
+Al acceder a la aplicación, se muestra la página de inicio con información
+general sobre el sistema y opciones para descargar plantillas de ejemplo.
+
+================================================================================
+4.1 DESCARGA DE PLANTILLAS
+================================================================================
+
+En la página de inicio encontrarás dos botones principales:
+
+1. "Descargar plantilla Festival.xlsx"
+2. "Descargar plantilla Grado.xlsx"
+
+Estos botones generan automáticamente archivos Excel con la estructura
+requerida para cada tipo de diploma.
+
+================================================================================
+4.2 PLANTILLA DE FESTIVALES
+================================================================================
+
+La plantilla de Festivales incluye los siguientes campos:
+
+OBLIGATORIOS:
+- instituto: Nombre de la institución educativa
+- estudiante: Nombre completo del estudiante
+- lugar: Posición obtenida (1, 2, 3, Primero, Segundo, Tercero)
+- grado: Grado o curso del estudiante
+- fecha: Fecha del evento (DD/MM/YYYY)
+- ciudad-departamento: Ciudad y departamento (ej: Bogotá - Cundinamarca)
+- sede: Sede del evento
+
+OPCIONALES:
+- rector: Nombre del rector o rectora
+- director: Nombre del director o directora de grado
+
+================================================================================
+4.3 PLANTILLA DE GRADO
+================================================================================
+
+La plantilla de Grado incluye los mismos campos que la de Festivales,
+pero está optimizada para ceremonias de graduación.
+
+================================================================================
+5. PÁGINA DEL EDITOR
+================================================================================
+
+El editor permite diseñar diplomas de manera visual e intuitiva.
+
+================================================================================
+5.1 ACCESO AL EDITOR
+================================================================================
+
+1. Desde la barra de navegación, haz clic en "EDITOR"
+2. Se cargará automáticamente el editor de diplomas
+
+================================================================================
+5.2 CREACIÓN DE UN NUEVO DIPLOMA
+================================================================================
+
+El editor se abre con un lienzo vacío donde puedes:
+
+1. VER el área de diseño (formato carta u oficio)
+2. AGREGAR elementos usando los controles disponibles
+3. MODIFICAR propiedades de cada elemento
+4. VISUALIZAR el resultado en tiempo real
+
+================================================================================
+5.3 ELEMENTOS DISPONIBLES
+================================================================================
+
+TEXTO:
+- Clic en "Agregar Texto"
+- Escribe el contenido
+- Ajusta fuente, tamaño, color y alineación
+- Posiciónalo arrastrando con el mouse
+
+IMÁGENES:
+- Clic en "Agregar Imagen"
+- Selecciona una imagen desde tu dispositivo
+- Ajusta tamaño y posición
+- Opción de mantener proporción
+
+MEDALLAS:
+- Clic en "Agregar Medalla"
+- Selecciona el tipo (1°, 2°, 3° lugar)
+- Personaliza colores si es necesario
+
+================================================================================
+5.4 GUARDADO DE DISEÑOS
+================================================================================
+
+1. Una vez completado el diseño, haz clic en "Guardar Diseño"
+2. Asigna un nombre descriptivo al diseño
+3. El diseño se guardará automáticamente en la nube
+4. Podrás reutilizarlo posteriormente en la sección LOTES
+
+================================================================================
+6. PÁGINA DE LOTES
+================================================================================
+
+Esta es la sección principal para generar diplomas masivamente.
+
+================================================================================
+6.1 PREPARACIÓN DEL ARCHIVO EXCEL
+================================================================================
+
+1. Descarga una plantilla desde la página HOME
+2. Abre el archivo .xlsx con Excel
+3. Completa los datos de cada estudiante (una fila por estudiante)
+4. IMPORTANTE: No modifiques los nombres de las columnas
+5. Guarda el archivo manteniendo el formato .xlsx
+
+================================================================================
+6.2 CARGA DEL ARCHIVO EXCEL
+================================================================================
+
+1. Ve a la página LOTES desde la barra de navegación
+2. Selecciona un diseño guardado en el menú desplegable
+3. Haz clic en "Seleccionar archivo Excel"
+4. Elige tu archivo .xlsx completado
+5. El sistema procesará automáticamente los datos
+
+================================================================================
+6.3 VINCULACIÓN DE CAMPOS
+================================================================================
+
+Después de cargar el Excel, debes vincular los campos del Excel con los
+elementos de texto en tu diseño:
+
+1. Para cada campo disponible (Instituto, Estudiante, Lugar, etc.):
+   - Selecciona del menú desplegable el elemento de texto correspondiente
+   - El sistema reemplazará automáticamente ese texto con los datos del Excel
+
+2. Campos principales a vincular:
+   - Instituto → Elemento que muestra el nombre de la institución
+   - Estudiante → Elemento que muestra el nombre del estudiante
+   - Lugar → Elemento que muestra la posición/puesto
+   - Grado → Elemento que muestra el grado del estudiante
+   - Fecha → Elemento que muestra la fecha del evento
+   - Ciudad-Departamento → Elemento que muestra la ubicación
+   - Sede → Elemento que muestra la sede del evento
+   - Rector → Elemento que muestra el nombre del rector
+   - Director → Elemento que muestra el nombre del director
+
+================================================================================
+6.4 GENERACIÓN DE DIPLOMAS
+================================================================================
+
+Una vez vinculados los campos:
+
+1. El sistema mostrará una tabla con todos los registros del Excel
+2. Puedes navegar entre registros usando "Anterior/Siguiente"
+3. Cada registro se previsualiza automáticamente en el diploma
+4. Verifica que todos los datos se muestren correctamente
+
+================================================================================
+6.5 EXPORTACIÓN A PDF
+================================================================================
+
+Para generar el PDF final:
+
+1. Asegúrate de que todos los campos estén correctamente vinculados
+2. Haz clic en "Exportar todos los diplomas a un PDF"
+3. El sistema procesará cada registro individualmente
+4. Se mostrará una barra de progreso durante la generación
+5. Al finalizar, se descargará automáticamente el archivo PDF
+6. El PDF contendrá un diploma por página para cada estudiante
+
+================================================================================
+7. FUNCIONALIDADES AVANZADAS
+================================================================================
+
+================================================================================
+7.1 MEDALLAS PERSONALIZADAS
+================================================================================
+
+- Las medallas se asignan automáticamente según el campo "lugar"
+- Valores reconocidos: 1, 2, 3, "primero", "segundo", "tercero"
+- Puedes personalizar los colores desde el editor
+
+================================================================================
+7.2 FUENTES Y ESTILOS
+================================================================================
+
+- El sistema incluye fuentes web estándar
+- Puedes ajustar: tamaño, color, negrita, cursiva, alineación
+- Los estilos se aplican en tiempo real
+
+================================================================================
+7.3 CAMPOS DINÁMICOS
+================================================================================
+
+- Todos los campos del Excel se pueden vincular dinámicamente
+- El sistema reconoce automáticamente nuevos campos
+- Campos opcionales como "rector" y "director" se pueden omitir
+
+================================================================================
+8. SOLUCIÓN DE PROBLEMAS
+================================================================================
+
+PROBLEMA: El archivo Excel no se carga
+SOLUCIÓN: Verifica que sea formato .xlsx y que las columnas tengan los nombres correctos
+
+PROBLEMA: Los campos no se vinculan correctamente
+SOLUCIÓN: Asegúrate de que los elementos de texto existan en el diseño
+
+PROBLEMA: El PDF no se genera
+SOLUCIÓN: Verifica que tengas un diseño seleccionado y un archivo Excel cargado
+
+PROBLEMA: Las imágenes no aparecen en el PDF
+SOLUCIÓN: Asegúrate de que las imágenes sean accesibles y no muy grandes
+
+PROBLEMA: Los acentos no se muestran correctamente
+SOLUCIÓN: Guarda el Excel con codificación UTF-8
+
+================================================================================
+9. CONTACTO Y SOPORTE
+================================================================================
+
+Para soporte técnico o reportar problemas:
+
+- Email: soporte@diplomas.com
+- Documentación: https://diplomas.com/docs
+- Versión actual: 2.0 (Noviembre 2025)
+
+================================================================================
+¡Gracias por usar el Sistema de Diplomas!
+================================================================================
