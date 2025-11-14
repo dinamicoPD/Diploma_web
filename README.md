@@ -140,6 +140,7 @@ La aplicación estará disponible en:
 ```bash
 firebase login
 ```
+**Correo electrónico:** `dinamico.moodle@gmail.com`
 
 #### Paso 2: Desplegar aplicación completa
 ```bash
@@ -150,6 +151,12 @@ firebase deploy
 Después del despliegue, obtendrás URLs como:
 - **Aplicación:** `https://diplomas-web-firebase.web.app`
 - **API:** `https://us-central1-diplomas-web-firebase.cloudfunctions.net/api`
+
+#### Paso 4: Cambiar credenciales (opcional)
+Si necesitas usar un proyecto Firebase diferente:
+1. Copia `.env.example` a `.env`
+2. Actualiza las credenciales en `.env`
+3. Actualiza el proyecto con `firebase use tu-proyecto-id`
 
 #### Ver guía completa de despliegue
 Ver el archivo [`DEPLOYMENT.md`](DEPLOYMENT.md) para instrucciones detalladas.

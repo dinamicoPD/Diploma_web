@@ -11,8 +11,9 @@ npm install -g firebase-tools
 ```bash
 firebase login
 ```
+- **Correo electrónico:** `dinamico.moodle@gmail.com`
 - Se abrirá el navegador para autenticación
-- Selecciona tu cuenta de Google
+- Selecciona la cuenta `dinamico.moodle@gmail.com`
 - Autoriza el acceso a Firebase
 
 ### 1.3 Verificar proyecto
@@ -70,16 +71,47 @@ firebase hosting:sites:list
 
 ## Paso 6: Configuración de Producción
 
-### 6.1 Variables de entorno en Firebase
+### 6.1 Cambiar Credenciales de Firebase (IMPORTANTE)
+
+#### Si usas un proyecto Firebase diferente:
+
+**Paso 1: Obtener nuevas credenciales**
+1. Ve a [Firebase Console](https://console.firebase.google.com)
+2. Inicia sesión con `dinamico.moodle@gmail.com`
+3. Selecciona o crea tu proyecto
+4. Ve a **Project Settings** > **General** > **Your apps**
+5. Crea una nueva app web o copia las credenciales existentes
+
+**Paso 2: Actualizar variables de entorno**
+Crea un archivo `.env` en la raíz del proyecto:
 ```bash
-# Configurar variables de entorno para las funciones
-firebase functions:config:set \
-  app.api_key="your_firebase_api_key" \
-  app.auth_domain="diplomas-web-firebase.firebaseapp.com" \
-  app.project_id="diplomas-web-firebase"
+cp .env.example .env
 ```
 
-### 6.2 Redeploy después de configuración
+Edita `.env` con tus nuevas credenciales:
+```env
+FIREBASE_API_KEY=tu_nueva_api_key_aqui
+FIREBASE_AUTH_DOMAIN=tu-proyecto.firebaseapp.com
+FIREBASE_PROJECT_ID=tu-proyecto-id
+FIREBASE_STORAGE_BUCKET=tu-proyecto.firebasestorage.app
+FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
+FIREBASE_APP_ID=tu_app_id
+```
+
+**Paso 3: Actualizar configuración de Firebase CLI**
+```bash
+firebase use tu-proyecto-id
+```
+
+### 6.2 Variables de entorno en Firebase Functions
+```bash
+# Configurar variables de entorno para las funciones (opcional)
+firebase functions:config:set \
+  app.environment="production" \
+  app.version="1.0.0"
+```
+
+### 6.3 Redeploy después de configuración
 ```bash
 firebase deploy --only functions
 ```
