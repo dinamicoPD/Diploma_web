@@ -119,7 +119,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 
 ## 🚀 Ejecución
 
-### Desarrollo
+### Desarrollo Local
 ```bash
 # Backend
 cd backend
@@ -130,21 +130,29 @@ cd diplomas-frontend
 npm run dev
 ```
 
-### Producción
-```bash
-# Backend
-cd backend
-npm start
-
-# Frontend
-cd diplomas-frontend
-npm run build
-npm start
-```
-
 La aplicación estará disponible en:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:4000
+
+### Despliegue en Producción (Firebase)
+
+#### Paso 1: Login en Firebase
+```bash
+firebase login
+```
+
+#### Paso 2: Desplegar aplicación completa
+```bash
+firebase deploy
+```
+
+#### Paso 3: URLs de producción
+Después del despliegue, obtendrás URLs como:
+- **Aplicación:** `https://diplomas-web-firebase.web.app`
+- **API:** `https://us-central1-diplomas-web-firebase.cloudfunctions.net/api`
+
+#### Ver guía completa de despliegue
+Ver el archivo [`DEPLOYMENT.md`](DEPLOYMENT.md) para instrucciones detalladas.
 
 ## 📡 API Endpoints
 
