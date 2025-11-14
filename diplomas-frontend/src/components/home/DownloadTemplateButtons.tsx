@@ -15,6 +15,8 @@ export default function DownloadTemplateButtons() {
         fecha: '21/10/2025',
         'ciudad-departamento': 'Tunja - Boyacá',
         sede: 'Principal',
+        rector: 'Dr. Carlos López',
+        director: 'Mtra. Julia Díaz',
       },
       {
         instituto: 'INSTITUCIÓN EDUCATIVA SILVINO RODRÍGUEZ',
@@ -24,6 +26,8 @@ export default function DownloadTemplateButtons() {
         fecha: '21/10/2025',
         'ciudad-departamento': 'Tunja - Boyacá',
         sede: 'Principal',
+        rector: 'Dr. Carlos López',
+        director: 'Mtra. Julia Díaz',
       },
       {
         instituto: 'INSTITUCIÓN EDUCATIVA SILVINO RODRÍGUEZ',
@@ -33,6 +37,8 @@ export default function DownloadTemplateButtons() {
         fecha: '21/10/2025',
         'ciudad-departamento': 'Tunja - Boyacá',
         sede: 'Principal',
+        rector: 'Dr. Carlos López',
+        director: 'Mtra. Julia Díaz',
       },
     ];
     const ws = XLSX.utils.json_to_sheet(rows, { skipHeader: false });
@@ -51,6 +57,8 @@ export default function DownloadTemplateButtons() {
         fecha: '20/11/2025',
         'ciudad-departamento': 'Tunja - Boyacá',
         sede: 'Principal',
+        rector: 'Dr. Carlos López',
+        director: 'Mtra. Julia Díaz',
       },
       {
         instituto: 'INSTITUCIÓN EDUCATIVA SILVINO RODRÍGUEZ',
@@ -59,6 +67,8 @@ export default function DownloadTemplateButtons() {
         fecha: '20/11/2025',
         'ciudad-departamento': 'Tunja - Boyacá',
         sede: 'Principal',
+        rector: 'Dr. Carlos López',
+        director: 'Mtra. Julia Díaz',
       },
     ];
     const ws = XLSX.utils.json_to_sheet(rows, { skipHeader: false });
