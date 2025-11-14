@@ -11,9 +11,10 @@ npm install -g firebase-tools
 ```bash
 firebase login
 ```
-- **Correo electrónico:** `dinamico.moodle@gmail.com`
+- **Correo electrónico:** `soporte@dinamicopd.com` ✅ (ya logueado)
+- Si necesitas cambiar de cuenta: `firebase logout` y luego `firebase login`
 - Se abrirá el navegador para autenticación
-- Selecciona la cuenta `dinamico.moodle@gmail.com`
+- Selecciona la cuenta correcta
 - Autoriza el acceso a Firebase
 
 ### 1.3 Verificar proyecto

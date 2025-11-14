@@ -19,9 +19,9 @@ export interface DesignData {
   id: string;
   name: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any; // JSON del diseño
+  data: any; // JSON del diseño con propiedades dinámicas
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  medal_images?: any;
+  medal_images?: any; // Objeto con imágenes de medallas
   createdAt: string;
   updatedAt: string;
 }

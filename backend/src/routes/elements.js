@@ -23,6 +23,123 @@ router.get('/', async (_req, res) => {
 
 // Obtener uno por id
 router.get('/:id', async (req, res) => {
+  try {
+    const docRef = doc(db, 'elements', req.params.id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      return res.status(404).json({ message: 'No encontrado' });
+    }
+
+    const data = docSnap.data();
+    res.json({
+      id: docSnap.id,
+      ...data,
+      createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error fetching element:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Crear nuevo
+router.post('/', async (req, res) => {
+  try {
+    const { designId, type, x, y, w, h, z, properties } = req.body || {};
+    if (!designId || !type || x === undefined || y === undefined || w === undefined || h === undefined || z === undefined || !properties) {
+      return res.status(400).json({ message: 'designId, type, x, y, w, h, z y properties son obligatorios' });
+    }
+
+    const docRef = await addDoc(collection(db, 'elements'), {
+      designId,
+      type,
+      x,
+      y,
+      w,
+      h,
+      z,
+      properties,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    });
+
+    res.status(201).json({
+      id: docRef.id,
+      designId,
+      type,
+      x,
+      y,
+      w,
+      h,
+      z,
+      properties,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error creating element:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Actualizar
+router.put('/:id', async (req, res) => {
+  try {
+    const { designId, type, x, y, w, h, z, properties } = req.body || {};
+    const docRef = doc(db, 'elements', req.params.id);
+
+    const updateData = {
+      updatedAt: Timestamp.now()
+    };
+
+    if (designId !== undefined) updateData.designId = designId;
+    if (type !== undefined) updateData.type = type;
+    if (x !== undefined) updateData.x = x;
+    if (y !== undefined) updateData.y = y;
+    if (w !== undefined) updateData.w = w;
+    if (h !== undefined) updateData.h = h;
+    if (z !== undefined) updateData.z = z;
+    if (properties !== undefined) updateData.properties = properties;
+
+    await updateDoc(docRef, updateData);
+
+    res.json({
+      id: req.params.id,
+      designId,
+      type,
+      x,
+      y,
+      w,
+      h,
+      z,
+      properties,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error updating element:', error);
+    if (error.code === 'not-found') {
+      return res.status(404).json({ message: 'No encontrado' });
+    }
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Eliminar
+router.delete('/:id', async (req, res) => {
+  try {
+    const docRef = doc(db, 'elements', req.params.id);
+    await deleteDoc(docRef);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error deleting element:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Obtener uno por id
+router.get('/:id', async (req, res) => {
   const item = await Element.findByPk(req.params.id);
   if (!item) return res.status(404).json({ message: 'No encontrado' });
   res.json(item);

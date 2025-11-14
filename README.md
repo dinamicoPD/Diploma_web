@@ -134,32 +134,54 @@ La aplicación estará disponible en:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:4000
 
-### Despliegue en Producción (Firebase)
+### Despliegue en Producción
 
-#### Paso 1: Login en Firebase
+#### Opción 1: Vercel (Recomendado - Todo Gratis)
+
+##### Paso 1: Instalar Vercel CLI
+```bash
+npm install -g vercel
+```
+
+##### Paso 2: Login en Vercel
+```bash
+vercel login
+```
+**Correo electrónico:** `dinamico.moodle@gmail.com`
+
+##### Paso 3: Desplegar
+```bash
+vercel --prod
+```
+
+##### Paso 4: URLs de producción
+Vercel te dará URLs como:
+- **Aplicación:** `https://diplomas-web.vercel.app`
+- **API:** `https://diplomas-web.vercel.app/api/*`
+
+#### Opción 2: Firebase (Requiere Plan Blaze)
+
+##### Paso 1: Login en Firebase
 ```bash
 firebase login
 ```
 **Correo electrónico:** `dinamico.moodle@gmail.com`
 
-#### Paso 2: Desplegar aplicación completa
+##### Paso 2: Upgrade a Blaze Plan
+Ve a: https://console.firebase.google.com/project/diplomas-web-firebase/usage/details
+
+##### Paso 3: Desplegar
 ```bash
 firebase deploy
 ```
 
-#### Paso 3: URLs de producción
-Después del despliegue, obtendrás URLs como:
+##### Paso 4: URLs de producción
 - **Aplicación:** `https://diplomas-web-firebase.web.app`
 - **API:** `https://us-central1-diplomas-web-firebase.cloudfunctions.net/api`
 
-#### Paso 4: Cambiar credenciales (opcional)
-Si necesitas usar un proyecto Firebase diferente:
-1. Copia `.env.example` a `.env`
-2. Actualiza las credenciales en `.env`
-3. Actualiza el proyecto con `firebase use tu-proyecto-id`
-
-#### Ver guía completa de despliegue
-Ver el archivo [`DEPLOYMENT.md`](DEPLOYMENT.md) para instrucciones detalladas.
+#### Ver guías completas de despliegue
+- [`DEPLOYMENT.md`](DEPLOYMENT.md) - Guía completa de Firebase
+- [Documentación de Vercel](https://vercel.com/docs) - Para despliegue con Vercel
 
 ## 📡 API Endpoints
 
