@@ -1,169 +1,133 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../db');
-const { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, Timestamp } = require('firebase/firestore');
 
-// Listar todas
-router.get('/', async (_req, res) => {
+// Simulación de base de datos en memoria (para desarrollo)
+// En producción esto debería usar Firebase Firestore
+let fonts = [
+  {
+    id: '1',
+    family: 'Arial',
+    format: 'truetype',
+    dataUrl: 'data:font/ttf;base64,AAEAAAASAQAABAAgR0RFRkZ3aBcAA...',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: '2',
+    family: 'Chomsky',
+    format: 'woff2',
+    dataUrl: 'data:font/woff2;base64,d09GMgABAAAAA...',
+    createdAt: new Date().toISOString()
+  }
+];
+
+// GET /api/fonts - Listar todas las fuentes
+router.get('/', (req, res) => {
   try {
-    const q = query(collection(db, 'fonts'), orderBy('createdAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    const items = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-    }));
-    res.json(items);
+    res.json(fonts);
   } catch (error) {
-    console.error('Error fetching fonts:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error obteniendo fuentes:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Obtener una por id
-router.get('/:id', async (req, res) => {
+// GET /api/fonts/:id - Obtener fuente por ID
+router.get('/:id', (req, res) => {
   try {
-    const docRef = doc(db, 'fonts', req.params.id);
-    const docSnap = await getDoc(docRef);
+    const { id } = req.params;
+    const font = fonts.find(f => f.id === id);
 
-    if (!docSnap.exists()) {
-      return res.status(404).json({ message: 'No encontrado' });
+    if (!font) {
+      return res.status(404).json({ error: 'Fuente no encontrada' });
     }
 
-    const data = docSnap.data();
-    res.json({
-      id: docSnap.id,
-      ...data,
-      createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-    });
+    res.json(font);
   } catch (error) {
-    console.error('Error fetching font:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error obteniendo fuente:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Crear nueva
-router.post('/', async (req, res) => {
+// POST /api/fonts - Crear nueva fuente
+router.post('/', (req, res) => {
   try {
-    const { family, format, dataUrl, fileName } = req.body || {};
-    if (!family || !format || !dataUrl || !fileName) {
-      return res.status(400).json({ message: 'family, format, dataUrl y fileName son obligatorios' });
+    const { family, format, dataUrl } = req.body;
+
+    if (!family || !format || !dataUrl) {
+      return res.status(400).json({ error: 'Familia, formato y dataUrl son requeridos' });
     }
 
-    const docRef = await addDoc(collection(db, 'fonts'), {
+    // Validar formato
+    const validFormats = ['woff2', 'woff', 'truetype', 'opentype'];
+    if (!validFormats.includes(format)) {
+      return res.status(400).json({ error: 'Formato no válido. Use: woff2, woff, truetype, opentype' });
+    }
+
+    const newFont = {
+      id: Date.now().toString(),
       family,
       format,
       dataUrl,
-      fileName,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    });
-
-    res.status(201).json({
-      id: docRef.id,
-      family,
-      format,
-      dataUrl,
-      fileName,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('Error creating font:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
-  }
-});
-
-// Actualizar
-router.put('/:id', async (req, res) => {
-  try {
-    const { family, format, dataUrl, fileName } = req.body || {};
-    const docRef = doc(db, 'fonts', req.params.id);
-
-    const updateData = {
-      updatedAt: Timestamp.now()
+      createdAt: new Date().toISOString()
     };
 
-    if (family !== undefined) updateData.family = family;
-    if (format !== undefined) updateData.format = format;
-    if (dataUrl !== undefined) updateData.dataUrl = dataUrl;
-    if (fileName !== undefined) updateData.fileName = fileName;
-
-    await updateDoc(docRef, updateData);
-
-    res.json({
-      id: req.params.id,
-      family,
-      format,
-      dataUrl,
-      fileName,
-      updatedAt: new Date().toISOString(),
-    });
+    fonts.push(newFont);
+    res.status(201).json(newFont);
   } catch (error) {
-    console.error('Error updating font:', error);
-    if (error.code === 'not-found') {
-      return res.status(404).json({ message: 'No encontrado' });
-    }
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error creando fuente:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Eliminar
-router.delete('/:id', async (req, res) => {
+// PUT /api/fonts/:id - Actualizar fuente
+router.put('/:id', (req, res) => {
   try {
-    const docRef = doc(db, 'fonts', req.params.id);
-    await deleteDoc(docRef);
-    res.json({ ok: true });
+    const { id } = req.params;
+    const { family, format, dataUrl } = req.body;
+
+    const fontIndex = fonts.findIndex(f => f.id === id);
+
+    if (fontIndex === -1) {
+      return res.status(404).json({ error: 'Fuente no encontrada' });
+    }
+
+    // Validar formato si se proporciona
+    if (format) {
+      const validFormats = ['woff2', 'woff', 'truetype', 'opentype'];
+      if (!validFormats.includes(format)) {
+        return res.status(400).json({ error: 'Formato no válido. Use: woff2, woff, truetype, opentype' });
+      }
+    }
+
+    fonts[fontIndex] = {
+      ...fonts[fontIndex],
+      family: family || fonts[fontIndex].family,
+      format: format || fonts[fontIndex].format,
+      dataUrl: dataUrl || fonts[fontIndex].dataUrl
+    };
+
+    res.json(fonts[fontIndex]);
   } catch (error) {
-    console.error('Error deleting font:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error actualizando fuente:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Obtener una por id
-router.get('/:id', async (req, res) => {
-  const item = await Font.findByPk(req.params.id);
-  if (!item) return res.status(404).json({ message: 'No encontrado' });
-  res.json(item);
-});
+// DELETE /api/fonts/:id - Eliminar fuente
+router.delete('/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const fontIndex = fonts.findIndex(f => f.id === id);
 
-// Crear nueva
-router.post('/', async (req, res) => {
-  const { family, format, dataUrl, fileName } = req.body || {};
-  if (!family || !format || !dataUrl || !fileName) return res.status(400).json({ message: 'family, format, dataUrl y fileName son obligatorios' });
+    if (fontIndex === -1) {
+      return res.status(404).json({ error: 'Fuente no encontrada' });
+    }
 
-  const created = await Font.create({
-    family,
-    format,
-    dataUrl,
-    fileName
-  });
-  res.status(201).json(created);
-});
-
-// Actualizar
-router.put('/:id', async (req, res) => {
-  const { family, format, dataUrl, fileName } = req.body || {};
-  const item = await Font.findByPk(req.params.id);
-  if (!item) return res.status(404).json({ message: 'No encontrado' });
-
-  if (family) item.family = family;
-  if (format) item.format = format;
-  if (dataUrl) item.dataUrl = dataUrl;
-  if (fileName) item.fileName = fileName;
-
-  await item.save();
-  res.json(item);
-});
-
-// Eliminar
-router.delete('/:id', async (req, res) => {
-  const item = await Font.findByPk(req.params.id);
-  if (!item) return res.status(404).json({ message: 'No encontrado' });
-  await item.destroy();
-  res.json({ ok: true });
+    fonts.splice(fontIndex, 1);
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error eliminando fuente:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
 });
 
 module.exports = router;

@@ -1,114 +1,120 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../db');
-const { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, Timestamp } = require('firebase/firestore');
 
-// Listar todas
-router.get('/', async (_req, res) => {
+// Simulación de base de datos en memoria (para desarrollo)
+// En producción esto debería usar Firebase Firestore + Storage
+let images = [
+  {
+    id: '1',
+    name: 'Logo Institucional',
+    url: '/logo.png',
+    width: 200,
+    height: 100,
+    size: 15432,
+    format: 'png',
+    createdAt: new Date().toISOString()
+  }
+];
+
+// GET /api/images - Listar todas las imágenes
+router.get('/', (req, res) => {
   try {
-    const q = query(collection(db, 'images'), orderBy('createdAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    const items = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-    }));
-    res.json(items);
+    res.json(images);
   } catch (error) {
-    console.error('Error fetching images:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error obteniendo imágenes:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Obtener una por id
-router.get('/:id', async (req, res) => {
+// GET /api/images/:id - Obtener imagen por ID
+router.get('/:id', (req, res) => {
   try {
-    const docRef = doc(db, 'images', req.params.id);
-    const docSnap = await getDoc(docRef);
+    const { id } = req.params;
+    const image = images.find(i => i.id === id);
 
-    if (!docSnap.exists()) {
-      return res.status(404).json({ message: 'No encontrado' });
+    if (!image) {
+      return res.status(404).json({ error: 'Imagen no encontrada' });
     }
 
-    const data = docSnap.data();
-    res.json({
-      id: docSnap.id,
-      ...data,
-      createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-    });
+    res.json(image);
   } catch (error) {
-    console.error('Error fetching image:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error obteniendo imagen:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Crear nueva
-router.post('/', async (req, res) => {
+// POST /api/images - Subir nueva imagen
+router.post('/', (req, res) => {
   try {
-    const { dataUrl, name } = req.body || {};
-    if (!dataUrl) return res.status(400).json({ message: 'dataUrl es obligatorio' });
+    const { name, url, width, height, size, format } = req.body;
 
-    const docRef = await addDoc(collection(db, 'images'), {
-      dataUrl,
-      name: name || null,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    });
+    if (!name || !url) {
+      return res.status(400).json({ error: 'Nombre y URL son requeridos' });
+    }
 
-    res.status(201).json({
-      id: docRef.id,
-      dataUrl,
-      name: name || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('Error creating image:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
-  }
-});
-
-// Actualizar
-router.put('/:id', async (req, res) => {
-  try {
-    const { dataUrl, name } = req.body || {};
-    const docRef = doc(db, 'images', req.params.id);
-
-    const updateData = {
-      updatedAt: Timestamp.now()
+    const newImage = {
+      id: Date.now().toString(),
+      name,
+      url,
+      width: width ? Number(width) : null,
+      height: height ? Number(height) : null,
+      size: size ? Number(size) : null,
+      format: format || 'png',
+      createdAt: new Date().toISOString()
     };
 
-    if (dataUrl !== undefined) updateData.dataUrl = dataUrl;
-    if (name !== undefined) updateData.name = name;
-
-    await updateDoc(docRef, updateData);
-
-    res.json({
-      id: req.params.id,
-      dataUrl,
-      name,
-      updatedAt: new Date().toISOString(),
-    });
+    images.push(newImage);
+    res.status(201).json(newImage);
   } catch (error) {
-    console.error('Error updating image:', error);
-    if (error.code === 'not-found') {
-      return res.status(404).json({ message: 'No encontrado' });
-    }
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error creando imagen:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Eliminar
-router.delete('/:id', async (req, res) => {
+// PUT /api/images/:id - Actualizar imagen
+router.put('/:id', (req, res) => {
   try {
-    const docRef = doc(db, 'images', req.params.id);
-    await deleteDoc(docRef);
-    res.json({ ok: true });
+    const { id } = req.params;
+    const { name, url, width, height, size, format } = req.body;
+
+    const imageIndex = images.findIndex(i => i.id === id);
+
+    if (imageIndex === -1) {
+      return res.status(404).json({ error: 'Imagen no encontrada' });
+    }
+
+    images[imageIndex] = {
+      ...images[imageIndex],
+      name: name || images[imageIndex].name,
+      url: url || images[imageIndex].url,
+      width: width !== undefined ? Number(width) : images[imageIndex].width,
+      height: height !== undefined ? Number(height) : images[imageIndex].height,
+      size: size !== undefined ? Number(size) : images[imageIndex].size,
+      format: format || images[imageIndex].format
+    };
+
+    res.json(images[imageIndex]);
   } catch (error) {
-    console.error('Error deleting image:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error actualizando imagen:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// DELETE /api/images/:id - Eliminar imagen
+router.delete('/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const imageIndex = images.findIndex(i => i.id === id);
+
+    if (imageIndex === -1) {
+      return res.status(404).json({ error: 'Imagen no encontrada' });
+    }
+
+    images.splice(imageIndex, 1);
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error eliminando imagen:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 

@@ -11,7 +11,15 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "keywords": ["diplomas", "nextjs", "express", "firebase"],
+  "keywords": [
+    "diplomas",
+    "nextjs",
+    "express",
+    "firebase"
+  ],
   "author": "Dinamico PD",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
 }

@@ -1,118 +1,130 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../db');
-const { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, Timestamp } = require('firebase/firestore');
 
-// Listar todos
-router.get('/', async (_req, res) => {
+// Simulación de base de datos en memoria (para desarrollo)
+// En producción esto debería usar Firebase Firestore
+let designs = [
+  {
+    id: '1',
+    name: 'Diploma de Festivales',
+    data: {
+      format: 'letter',
+      orientation: 'portrait',
+      dpi: 150,
+      elements: [
+        {
+          id: 'text-1',
+          type: 'text',
+          text: 'CERTIFICADO DE PARTICIPACIÓN',
+          x: 200,
+          y: 100,
+          w: 400,
+          h: 50,
+          fontSize: 24,
+          fontFamily: 'Arial',
+          color: '#000000',
+          align: 'center'
+        }
+      ]
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
+// GET /api/designs - Listar todos los diseños
+router.get('/', (req, res) => {
   try {
-    const q = query(collection(db, 'designs'), orderBy('updatedAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    const items = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-    }));
-    res.json(items);
+    res.json(designs);
   } catch (error) {
-    console.error('Error fetching designs:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error obteniendo diseños:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Obtener uno por id
-router.get('/:id', async (req, res) => {
+// GET /api/designs/:id - Obtener diseño por ID
+router.get('/:id', (req, res) => {
   try {
-    const docRef = doc(db, 'designs', req.params.id);
-    const docSnap = await getDoc(docRef);
+    const { id } = req.params;
+    const design = designs.find(d => d.id === id);
 
-    if (!docSnap.exists()) {
-      return res.status(404).json({ message: 'No encontrado' });
+    if (!design) {
+      return res.status(404).json({ error: 'Diseño no encontrado' });
     }
 
-    const data = docSnap.data();
-    res.json({
-      id: docSnap.id,
-      ...data,
-      createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-    });
+    res.json(design);
   } catch (error) {
-    console.error('Error fetching design:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error obteniendo diseño:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Crear nuevo
-router.post('/', async (req, res) => {
+// POST /api/designs - Crear nuevo diseño
+router.post('/', (req, res) => {
   try {
-    const { name, data, medalImages } = req.body || {};
-    if (!name || !data) return res.status(400).json({ message: 'name y data son obligatorios' });
+    const { name, data } = req.body;
 
-    const docRef = await addDoc(collection(db, 'designs'), {
+    if (!name || !data) {
+      return res.status(400).json({ error: 'Nombre y datos son requeridos' });
+    }
+
+    const newDesign = {
+      id: Date.now().toString(),
       name,
       data,
-      medal_images: medalImages,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    });
-
-    res.status(201).json({
-      id: docRef.id,
-      name,
-      data,
-      medal_images: medalImages,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('Error creating design:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
-  }
-});
-
-// Actualizar
-router.put('/:id', async (req, res) => {
-  try {
-    const { name, data, medalImages } = req.body || {};
-    const docRef = doc(db, 'designs', req.params.id);
-
-    const updateData = {
-      updatedAt: Timestamp.now()
+      updatedAt: new Date().toISOString()
     };
 
-    if (name !== undefined) updateData.name = name;
-    if (data !== undefined) updateData.data = data;
-    if (medalImages !== undefined) updateData.medal_images = medalImages;
-
-    await updateDoc(docRef, updateData);
-
-    res.json({
-      id: req.params.id,
-      name,
-      data,
-      medal_images: medalImages,
-      updatedAt: new Date().toISOString(),
-    });
+    designs.push(newDesign);
+    res.status(201).json(newDesign);
   } catch (error) {
-    console.error('Error updating design:', error);
-    if (error.code === 'not-found') {
-      return res.status(404).json({ message: 'No encontrado' });
-    }
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error creando diseño:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-// Eliminar
-router.delete('/:id', async (req, res) => {
+// PUT /api/designs/:id - Actualizar diseño
+router.put('/:id', (req, res) => {
   try {
-    const docRef = doc(db, 'designs', req.params.id);
-    await deleteDoc(docRef);
-    res.json({ ok: true });
+    const { id } = req.params;
+    const { name, data } = req.body;
+
+    const designIndex = designs.findIndex(d => d.id === id);
+
+    if (designIndex === -1) {
+      return res.status(404).json({ error: 'Diseño no encontrado' });
+    }
+
+    designs[designIndex] = {
+      ...designs[designIndex],
+      name: name || designs[designIndex].name,
+      data: data || designs[designIndex].data,
+      updatedAt: new Date().toISOString()
+    };
+
+    res.json(designs[designIndex]);
   } catch (error) {
-    console.error('Error deleting design:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Error actualizando diseño:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// DELETE /api/designs/:id - Eliminar diseño
+router.delete('/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const designIndex = designs.findIndex(d => d.id === id);
+
+    if (designIndex === -1) {
+      return res.status(404).json({ error: 'Diseño no encontrado' });
+    }
+
+    designs.splice(designIndex, 1);
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error eliminando diseño:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
