@@ -1,0 +1,94 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    # Fase de calentamiento
+    - duration: 60
+      arrivalRate: 1
+      name: "Calentamiento"
+    # Fase de carga normal
+    - duration: 120
+      arrivalRate: 5
+      name: "Carga normal"
+    # Fase de estrés
+    - duration: 60
+      arrivalRate: 10
+      name: "Estrés moderado"
+    # Fase de pico
+    - duration: 30
+      arrivalRate: 20
+      name: "Pico de carga"
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+
+scenarios:
+  - name: "Navegación básica"
+    weight: 40
+    flow:
+      - get:
+          url: "/"
+      - think: 2
+      - get:
+          url: "/home"
+      - think: 3
+      - get:
+          url: "/editor"
+      - think: 5
+      - get:
+          url: "/lotes"
+      - think: 2
+
+  - name: "Descarga de plantillas"
+    weight: 20
+    flow:
+      - get:
+          url: "/home"
+      - think: 1
+      - post:
+          url: "/api/download-template"
+          json:
+            type: "festival"
+      - think: 2
+      - post:
+          url: "/api/download-template"
+          json:
+            type: "grado"
+
+  - name: "Procesamiento de lotes"
+    weight: 30
+    flow:
+      - get:
+          url: "/lotes"
+      - think: 3
+      - post:
+          url: "/api/designs"
+          json:
+            name: "Test Design {{ $randomInt }}"
+            data:
+              format: "letter"
+              orientation: "portrait"
+              dpi: 150
+              elements: []
+      - think: 2
+      - get:
+          url: "/api/designs"
+      - think: 1
+
+  - name: "Operaciones del editor"
+    weight: 10
+    flow:
+      - get:
+          url: "/editor"
+      - think: 4
+      - post:
+          url: "/api/elements"
+          json:
+            type: "text"
+            text: "Test Element"
+            x: 100
+            y: 100
+            w: 200
+            h: 50
+      - think: 2
+      - get:
+          url: "/api/elements"
