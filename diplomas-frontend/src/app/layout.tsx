@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './globals.css';
 import AppNavbar from '@/components/layout/AppNavbar';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
   title: 'Diplomas App',
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <AppNavbar />
         {children}
+        <Analytics />
       </body>
     </html>
   );
