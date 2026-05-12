@@ -19,7 +19,7 @@ export default function AppNavbar() {
       <Container>
         <Navbar.Brand as={Link} href="/" className="d-flex align-items-center gap-2">
           {/* ✅ Logo sin distorsión */}
-          <img src="/logo.png" alt="Dinámico" className="brand-logo bg-white rounded-2 p-1 border" />
+          <img src="/Logo.png" alt="Dinámico" className="brand-logo bg-white rounded-2 p-1 border" />
           <span className="fw-bold text-brand-ink">Diplomas App</span>
         </Navbar.Brand>
 
