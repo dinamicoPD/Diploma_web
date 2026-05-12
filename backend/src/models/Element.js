@@ -1,35 +1,54 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../db');
+// Modelo de Elemento usando Firestore
+const { db } = require('./db');
 
-const Element = sequelize.define('Element', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
-  },
-  designId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'designs',
-      key: 'id'
-    }
-  },
-  type: {
-    type: DataTypes.ENUM('text', 'image', 'medal'),
-    allowNull: false
-  },
-  x: { type: DataTypes.FLOAT, allowNull: false },
-  y: { type: DataTypes.FLOAT, allowNull: false },
-  w: { type: DataTypes.FLOAT, allowNull: false },
-  h: { type: DataTypes.FLOAT, allowNull: false },
-  z: { type: DataTypes.INTEGER, allowNull: false },
-  properties: {
-    type: DataTypes.JSON,
-    allowNull: false
+// Colección de elementos en Firestore
+const elementsCollection = db.collection('elements');
+
+// Función para crear un nuevo elemento
+async function createElement(elementData) {
+  const docRef = await elementsCollection.add({
+    ...elementData,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+  return { id: docRef.id, ...elementData };
+}
+
+// Función para obtener un elemento por ID
+async function getElementById(id) {
+  const doc = await elementsCollection.doc(id).get();
+  if (!doc.exists) {
+    return null;
   }
-}, {
-  tableName: 'elements'
-});
+  return { id: doc.id, ...doc.data() };
+}
 
-module.exports = { Element };
+// Función para obtener todos los elementos
+async function getAllElements() {
+  const snapshot = await elementsCollection.get();
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Función para actualizar un elemento
+async function updateElement(id, updateData) {
+  await elementsCollection.doc(id).update({
+    ...updateData,
+    updatedAt: new Date()
+  });
+  const doc = await elementsCollection.doc(id).get();
+  return { id: doc.id, ...doc.data() };
+}
+
+// Función para eliminar un elemento
+async function deleteElement(id) {
+  await elementsCollection.doc(id).delete();
+  return { id };
+}
+
+module.exports = {
+  createElement,
+  getElementById,
+  getAllElements,
+  updateElement,
+  deleteElement
+};

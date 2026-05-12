@@ -1,22 +1,54 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../db');
+// Modelo de Imagen usando Firestore
+const { db } = require('./db');
 
-const Image = sequelize.define('Image', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
-  },
-  dataUrl: {
-    type: DataTypes.TEXT('long'),
-    allowNull: false
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: true
+// Colección de imágenes en Firestore
+const imagesCollection = db.collection('images');
+
+// Función para crear una nueva imagen
+async function createImage(imageData) {
+  const docRef = await imagesCollection.add({
+    ...imageData,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+  return { id: docRef.id, ...imageData };
+}
+
+// Función para obtener una imagen por ID
+async function getImageById(id) {
+  const doc = await imagesCollection.doc(id).get();
+  if (!doc.exists) {
+    return null;
   }
-}, {
-  tableName: 'images'
-});
+  return { id: doc.id, ...doc.data() };
+}
 
-module.exports = { Image };
+// Función para obtener todas las imágenes
+async function getAllImages() {
+  const snapshot = await imagesCollection.get();
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Función para actualizar una imagen
+async function updateImage(id, updateData) {
+  await imagesCollection.doc(id).update({
+    ...updateData,
+    updatedAt: new Date()
+  });
+  const doc = await imagesCollection.doc(id).get();
+  return { id: doc.id, ...doc.data() };
+}
+
+// Función para eliminar una imagen
+async function deleteImage(id) {
+  await imagesCollection.doc(id).delete();
+  return { id };
+}
+
+module.exports = {
+  createImage,
+  getImageById,
+  getAllImages,
+  updateImage,
+  deleteImage
+};

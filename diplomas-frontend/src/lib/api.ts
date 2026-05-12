@@ -1,8 +1,7 @@
-// Usando Firebase para persistencia en la nube
+// Usando Firebase para Firestore y nuestro backend para almacenamiento de archivos
 
-import { db, storage } from './firebaseClient';
+import { db } from './firebaseClient';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 // Tipos
 export interface FontData {
@@ -127,13 +126,111 @@ export async function importDesigns(designsToImport: DesignData[]): Promise<void
   }
 }
 
-// Funciones para Imágenes (manteniendo dataURLs locales)
+// NUEVAS FUNCIONES PARA SUBIR ARCHIVOS A TRAVÉS DEL BACKEND
+export async function uploadImage(file: File): Promise<string> {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    // Get Firebase Auth token for user identification
+    const auth = await import('./firebaseClient').then(mod => mod.getAuthInstance());
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser) {
+      throw new Error('User not authenticated');
+    }
+    
+    const idToken = await currentUser.getIdToken();
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        // Note: Don't set Content-Type for FormData, let browser set it
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to upload image');
+    }
+    
+    const result = await response.json();
+    return result.url; // Return the Cloudinary URL
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+}
+
+export async function uploadFont(file: File): Promise<string> {
+  try {
+    const formData = new FormData();
+    formData.append('font', file);
+    
+    // Get Firebase Auth token for user identification
+    const auth = await import('./firebaseClient').then(mod => mod.getAuthInstance());
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser) {
+      throw new Error('User not authenticated');
+    }
+    
+    const idToken = await currentUser.getIdToken();
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/font`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        // Note: Don't set Content-Type for FormData, let browser set it
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to upload font');
+    }
+    
+    const result = await response.json();
+    return result.url; // Return the Cloudinary URL
+  } catch (error) {
+    console.error('Error uploading font:', error);
+    throw error;
+  }
+}
+
+// Mantener las funciones de imagen existentes para compatibilidad (ahora usan el backend)
 export async function saveImage(dataUrl: string, filename: string): Promise<string> {
-  // Para imágenes locales, devolvemos la dataURL directamente
-  return dataUrl;
+  // Convert dataUrl to Blob for upload
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  const file = new File([blob], filename, { type: blob.type });
+  
+  // Upload through backend
+  return await uploadImage(file);
 }
 
 export async function getImage(filename: string): Promise<string | null> {
-  // Las imágenes están embebidas como dataURLs, no necesitamos buscar
+  // This function is kept for compatibility but now returns null
+  // Images should be managed through the uploadImage/saveImage flow
   return null;
+}
+
+// Also add a function to get image by ID from Firestore (if needed)
+export async function getImageById(id: string): Promise<{ url: string } | null> {
+  try {
+    const docRef = doc(db, 'images', id);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return { url: data.url };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting image by ID:', error);
+    return null;
+  }
 }

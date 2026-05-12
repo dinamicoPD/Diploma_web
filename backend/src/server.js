@@ -8,6 +8,7 @@ const fontsRoutes = require('./routes/fonts');
 const elementsRoutes = require('./routes/elements');
 const imagesRoutes = require('./routes/images');
 const downloadTemplateRoutes = require('./routes/downloadTemplate');
+const uploadRoutes = require('./routes/upload'); // ADD THIS LINE
 require('dotenv').config();
 
 async function main() {
@@ -67,15 +68,18 @@ async function main() {
 
   // Rutas de fuentes
   app.use('/api/fonts', fontsRoutes);
-  
+   
   // Rutas de elementos
   app.use('/api/elements', elementsRoutes);
-  
+   
   // Rutas de imágenes
   app.use('/api/images', imagesRoutes);
 
   // Rutas de descarga de plantillas
   app.use('/api/download-template', downloadTemplateRoutes);
+
+  // Rutas de subida de archivos (NUEVO)
+  app.use('/api/upload', uploadRoutes); // ADD THIS LINE
 
   const port = Number(process.env.PORT || 4000);
   const server = app.listen(port, () => {

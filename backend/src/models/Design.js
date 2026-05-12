@@ -1,34 +1,54 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../db');
+// Modelo de Diseño usando Firestore
+const { db } = require('./db');
 
-const Design = sequelize.define('Design', {
-  id: {
-    type: DataTypes.UUID,       // id UUID
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
-  },
-  name: {
-    type: DataTypes.STRING(190),
-    allowNull: false,
-    unique: true
-  },
-  // JSON con format, orientation, dpi, backgroundUrl, medalImages
-  data: {
-    type: DataTypes.JSON,
-    allowNull: false
-  },
-  // Opcional: medallas centralizadas (dataURL) si quieres
-  medal_images: {
-    type: DataTypes.JSON,
-    allowNull: true
+// Colección de diseños en Firestore
+const designsCollection = db.collection('designs');
+
+// Función para crear un nuevo diseño
+async function createDesign(designData) {
+  const docRef = await designsCollection.add({
+    ...designData,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+  return { id: docRef.id, ...designData };
+}
+
+// Función para obtener un diseño por ID
+async function getDesignById(id) {
+  const doc = await designsCollection.doc(id).get();
+  if (!doc.exists) {
+    return null;
   }
-}, {
-  tableName: 'designs'
-});
+  return { id: doc.id, ...doc.data() };
+}
 
-// Import Element after define to avoid circular
-const { Element } = require('./Element');
-Design.hasMany(Element, { foreignKey: 'designId', as: 'elements', onDelete: 'CASCADE' });
-Element.belongsTo(Design, { foreignKey: 'designId' });
+// Función para obtener todos los diseños
+async function getAllDesigns() {
+  const snapshot = await designsCollection.get();
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
 
-module.exports = { Design };
+// Función para actualizar un diseño
+async function updateDesign(id, updateData) {
+  await designsCollection.doc(id).update({
+    ...updateData,
+    updatedAt: new Date()
+  });
+  const doc = await designsCollection.doc(id).get();
+  return { id: doc.id, ...doc.data() };
+}
+
+// Función para eliminar un diseño
+async function deleteDesign(id) {
+  await designsCollection.doc(id).delete();
+  return { id };
+}
+
+module.exports = {
+  createDesign,
+  getDesignById,
+  getAllDesigns,
+  updateDesign,
+  deleteDesign
+};

@@ -3,7 +3,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+// Removed getStorage import since we're using Cloudinary for file storage
 
 // 🔐 Configuración que copias desde la consola de Firebase
 // (firebaseConfig que te mostró cuando registraste la app web)
@@ -20,7 +20,7 @@ const firebaseConfig = {
 let app: any = null;
 let authInstance: any = null;
 let dbInstance: any = null;
-let storageInstance: any = null;
+// let storageInstance: any = null; // Removed since we're not using Firebase Storage
 
 function getFirebaseApp() {
   if (!app) {
@@ -44,15 +44,15 @@ export const getDbInstance = () => {
   return dbInstance;
 };
 
-export const getStorageInstance = () => {
-  if (!storageInstance) {
-    storageInstance = getStorage(getFirebaseApp());
-  }
-  return storageInstance;
-};
+// export const getStorageInstance = () => {
+//   if (!storageInstance) {
+//     storageInstance = getStorage(getFirebaseApp());
+//   }
+//   return storageInstance;
+// };
 
 // Para compatibilidad backward, exportamos las instancias directamente
 // pero estas se inicializarán solo cuando se usen por primera vez
 export const auth = getAuthInstance();
 export const db = getDbInstance();
-export const storage = getStorageInstance();
+// export const storage = getStorageInstance(); // Removed
