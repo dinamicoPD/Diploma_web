@@ -1,7 +1,7 @@
 // Usando Firebase para Firestore y nuestro backend para almacenamiento de archivos
 
 import { db } from './firebaseClient';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp, getDoc } from 'firebase/firestore';
 
 // Tipos
 export interface FontData {
