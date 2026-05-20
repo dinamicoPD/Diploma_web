@@ -4,9 +4,8 @@
 
 **Nombre del Proyecto:** Sistema de Diplomas Dinámico
 **Versión:** 2.0
-**Fecha:** Noviembre 2025
-**Autor:** Desarrollador Kilo Code
-**Tecnologías:** Next.js 16, Node.js, Firebase, Vercel
+**Fecha:** Mayo 2026
+**Tecnologías:** Next.js 16, Node.js, Supabase, Vercel
 
 ## 🏗️ Arquitectura del Sistema
 
@@ -16,18 +15,18 @@
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Backend       │    │   Base de       │
 │   (Next.js)     │◄──►│   (Node.js)     │◄──►│   Datos         │
-│                 │    │                 │    │   (Firebase)    │
+│                 │    │                 │    │   (Supabase)    │
 │ - Páginas       │    │ - API Routes    │    │                 │
-│ - Componentes   │    │ - Controladores │    │ - Firestore     │
+│ - Componentes   │    │ - Controladores │    │ - PostgreSQL    │
 │ - Lógica cliente│    │ - Servicios     │    │ - Storage       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
        │                       │                       │
        └───────────────────────┼───────────────────────┘
-                               │
-                    ┌─────────────────┐
-                    │   Despliegue    │
-                    │   (Vercel)      │
-                    └─────────────────┘
+                                │
+                     ┌─────────────────┐
+                     │   Despliegue    │
+                     │   (Vercel)      │
+                     └─────────────────┘
 ```
 
 ### Arquitectura Frontend
@@ -46,7 +45,7 @@ diplomas-frontend/
 │   └── layout/          # Componentes de layout
 ├── lib/                 # Utilidades y configuración
 │   ├── api.ts           # Cliente API
-│   └── firebaseClient.ts # Configuración Firebase
+│   └── supabaseClient.ts # Configuración Supabase
 └── public/              # Archivos estáticos
 ```
 
@@ -56,12 +55,13 @@ diplomas-frontend/
 backend/
 ├── src/
 │   ├── server.js         # Servidor principal (Express)
-│   ├── db.js            # Configuración base de datos
+│   ├── db.js            # Configuración Supabase
 │   ├── routes/          # Rutas API
 │   │   ├── designs.js   # CRUD diseños
 │   │   ├── elements.js  # CRUD elementos
 │   │   ├── fonts.js     # CRUD fuentes
-│   │   └── images.js    # CRUD imágenes
+│   │   ├── images.js    # CRUD imágenes
+│   │   └── upload.js    # Subida de archivos
 │   └── models/          # Modelos de datos
 │       ├── Design.js    # Modelo Diseño
 │       ├── Element.js   # Modelo Elemento
@@ -74,9 +74,10 @@ backend/
 
 ### Frontend
 - **Next.js 16** - Framework React con App Router
-- **React 18** - Biblioteca de componentes
+- **React 19** - Biblioteca de componentes
 - **TypeScript** - Tipado estático
 - **Bootstrap 5** - Framework CSS
+- **Supabase Client** - Cliente para Supabase
 - **html-to-image** - Conversión HTML a imagen
 - **xlsx** - Procesamiento de archivos Excel
 - **jspdf** - Generación de PDFs
@@ -84,18 +85,17 @@ backend/
 ### Backend
 - **Node.js** - Runtime JavaScript
 - **Express.js** - Framework web
-- **Sequelize** - ORM para bases de datos
-- **MySQL** - Base de datos relacional
+- **@supabase/supabase-js** - Cliente Supabase
+- **Cloudinary** - Almacenamiento de archivos
 - **CORS** - Manejo de cross-origin requests
 
 ### Base de Datos y Servicios
-- **Firebase Firestore** - Base de datos NoSQL
-- **Firebase Storage** - Almacenamiento de archivos
-- **Firebase Auth** - Autenticación (configurado pero no usado)
+- **Supabase PostgreSQL** - Base de datos relacional
+- **Supabase Storage** - Almacenamiento de archivos
+- **Supabase Auth** - Autenticación
 
 ### Despliegue y DevOps
 - **Vercel** - Plataforma de despliegue
-- **Vercel Analytics** - Análisis de uso
 - **GitHub** - Control de versiones
 - **npm** - Gestión de dependencias
 
@@ -104,7 +104,7 @@ backend/
 ### Frontend (`diplomas-frontend/`)
 
 #### Páginas (`app/`)
-- `layout.tsx` - Layout raíz con navegación y analytics
+- `layout.tsx` - Layout raíz con navegación
 - `page.tsx` - Página de inicio (redirecciona a /home)
 - `home/page.tsx` - Página principal con descarga de plantillas
 - `editor/page.tsx` - Editor visual de diplomas
@@ -118,31 +118,32 @@ backend/
 
 #### Utilidades (`lib/`)
 - `api.ts` - Cliente para llamadas a la API
-- `firebaseClient.ts` - Configuración lazy de Firebase
+- `supabaseClient.ts` - Configuración de Supabase
 
 ### Backend (`backend/`)
 
 #### Servidor (`src/`)
 - `server.js` - Configuración de Express con rutas y middleware
-- `db.js` - Configuración de conexión a base de datos
+- `db.js` - Configuración de conexión a Supabase
 
 #### Rutas API (`src/routes/`)
 - `designs.js` - CRUD para diseños de diplomas
 - `elements.js` - CRUD para elementos de diseño
 - `fonts.js` - CRUD para fuentes
 - `images.js` - CRUD para imágenes
+- `upload.js` - Subida de archivos a Cloudinary
 
 #### Modelos (`src/models/`)
-- `Design.js` - Modelo para diseños guardados
-- `Element.js` - Modelo para elementos de diseño
-- `Font.js` - Modelo para fuentes disponibles
-- `Image.js` - Modelo para imágenes almacenadas
+- `Design.js` - Operaciones en tabla designs
+- `Element.js` - Operaciones en tabla elements
+- `Font.js` - Operaciones en tabla fonts
+- `Image.js` - Operaciones en tabla images
 
 ## 🔌 APIs y Endpoints
 
 ### Base URL
-- **Desarrollo:** `http://localhost:3001`
-- **Producción:** Configurado en Vercel
+- **Desarrollo:** `http://localhost:4000`
+- **Producción:** `https://[tu-dominio].vercel.app`
 
 ### Endpoints Disponibles
 
@@ -158,6 +159,7 @@ DELETE /api/designs/:id # Eliminar diseño
 #### Elementos (`/api/elements`)
 ```
 GET    /api/elements     # Listar elementos
+GET    /api/elements/:id # Obtener elemento
 POST   /api/elements     # Crear elemento
 PUT    /api/elements/:id # Actualizar elemento
 DELETE /api/elements/:id # Eliminar elemento
@@ -166,6 +168,7 @@ DELETE /api/elements/:id # Eliminar elemento
 #### Fuentes (`/api/fonts`)
 ```
 GET    /api/fonts     # Listar fuentes
+GET    /api/fonts/:id # Obtener fuente
 POST   /api/fonts     # Crear fuente
 PUT    /api/fonts/:id # Actualizar fuente
 DELETE /api/fonts/:id # Eliminar fuente
@@ -174,8 +177,15 @@ DELETE /api/fonts/:id # Eliminar fuente
 #### Imágenes (`/api/images`)
 ```
 GET    /api/images     # Listar imágenes
+GET    /api/images/:id # Obtener imagen
 POST   /api/images     # Subir imagen
 DELETE /api/images/:id # Eliminar imagen
+```
+
+#### Subida de archivos (`/api/upload`)
+```
+POST   /api/upload/image # Subir imagen a Cloudinary
+POST   /api/upload/font  # Subir fuente a Cloudinary
 ```
 
 ## ⚙️ Configuración
@@ -184,57 +194,76 @@ DELETE /api/images/:id # Eliminar imagen
 
 #### Frontend (`.env.local`)
 ```bash
-# Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_SUPABASE_URL=https://[project-id].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+NEXT_PUBLIC_API_URL=/
 ```
 
-#### Backend (`.env.local`)
+#### Backend (`.env`)
 ```bash
-# Database Configuration
-DB_HOST=localhost
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=diplomas_db
-
-# Server Configuration
-PORT=3001
-NODE_ENV=development
-
-# CORS Configuration
-FRONTEND_URL=http://localhost:3000
+SUPABASE_URL=https://[project-id].supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_ANON_KEY=your_anon_key
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+PORT=4000
+CORS_ORIGIN=https://[tu-dominio].vercel.app
 ```
 
-### Configuración de Firebase
+### Configuración de Supabase
 
-1. **Crear proyecto en Firebase Console**
-2. **Habilitar Firestore Database**
-3. **Configurar Storage**
-4. **Obtener credenciales de configuración**
-5. **Configurar reglas de seguridad**
+1. **Crear proyecto en Supabase Console**
+2. **Habilitar PostgreSQL Database**
+3. **Crear tablas:**
 
-### Configuración de Vercel
+```sql
+create table designs (
+  id uuid default uuid_generate_v4() primary key,
+  name text,
+  data jsonb,
+  medal_images jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
 
-1. **Conectar repositorio GitHub**
-2. **Configurar variables de entorno**
-3. **Configurar build settings**
-4. **Configurar domains personalizados**
+create table fonts (
+  id uuid default uuid_generate_v4() primary key,
+  family text,
+  format text,
+  dataUrl text,
+  fileName text,
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+create table elements (
+  id uuid default uuid_generate_v4() primary key,
+  design_id uuid references designs(id),
+  type text,
+  x numeric, y numeric, w numeric, h numeric, z numeric,
+  properties jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+create table images (
+  id uuid default uuid_generate_v4() primary key,
+  name text, url text, format text,
+  width numeric, height numeric, size numeric,
+  user_id text,
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+```
 
 ## 🚀 Instalación y Desarrollo
 
 ### Prerrequisitos
-
 - Node.js 18+
 - npm o yarn
-- MySQL (para desarrollo local)
-- Cuenta de Firebase
+- Cuenta de Supabase
+- Cuenta de Cloudinary
 - Cuenta de Vercel
 
 ### Instalación
@@ -253,8 +282,7 @@ cd ../backend
 npm install
 
 # Configurar variables de entorno
-cp .env.example .env.local
-# Editar .env.local con tus credenciales
+# Ver archivos .env.example
 ```
 
 ### Desarrollo Local
@@ -262,258 +290,23 @@ cp .env.example .env.local
 ```bash
 # Terminal 1: Backend
 cd backend
-npm start
+npm run dev
 
 # Terminal 2: Frontend
 cd diplomas-frontend
 npm run dev
 ```
 
-### Build de Producción
-
-```bash
-# Frontend
-cd diplomas-frontend
-npm run build
-
-# Backend (si es necesario)
-cd backend
-npm run build
-```
-
-## 📊 Base de Datos
-
-### Esquema de Firestore
-
-#### Colección `designs`
-```javascript
-{
-  id: string,
-  name: string,
-  data: {
-    format: 'letter' | 'legal',
-    orientation: 'portrait' | 'landscape',
-    dpi: 150 | 200 | 300,
-    backgroundUrl?: string,
-    elements: CanvasElement[],
-    medalImages?: Record<1|2|3, string>
-  },
-  createdAt: Timestamp,
-  updatedAt: Timestamp
-}
-```
-
-#### Colección `fonts`
-```javascript
-{
-  id: string,
-  family: string,
-  format: 'woff2' | 'woff' | 'truetype' | 'opentype',
-  dataUrl: string,
-  createdAt: Timestamp
-}
-```
-
-#### Colección `images`
-```javascript
-{
-  id: string,
-  name: string,
-  url: string,
-  size: number,
-  createdAt: Timestamp
-}
-```
-
-## 🔧 Solución de Problemas
-
-### Problemas Comunes
-
-#### 1. Error de Firebase API Key
-```
-Error: Firebase: Error (auth/invalid-api-key)
-```
-**Solución:** Verificar variables de entorno de Firebase
-
-#### 2. Error de prerendering
-```
-Error occurred prerendering page "/editor"
-```
-**Solución:** Verificar configuración `dynamic = 'force-dynamic'`
-
-#### 3. Error de dependencias SWC
-```
-Found lockfile missing swc dependencies
-```
-**Solución:** Ejecutar `npm install` en el directorio correcto
-
-#### 4. Error de CORS
-```
-Access to XMLHttpRequest blocked by CORS policy
-```
-**Solución:** Verificar configuración CORS en backend
-
-#### 5. Error de build en Vercel
-```
-Command "npm run build" exited with 1
-```
-**Solución:** Verificar logs de build y corregir errores de TypeScript
-
-### Comandos Útiles
-
-```bash
-# Limpiar cache de Next.js
-cd diplomas-frontend
-rm -rf .next
-
-# Reinstalar dependencias
-npm ci
-
-# Verificar TypeScript
-npx tsc --noEmit
-
-# Verificar ESLint
-npx eslint .
-
-# Verificar build
-npm run build
-```
-
 ## 🔄 Despliegue
 
 ### Despliegue Automático (Vercel)
 
-1. **Push a rama main**
-2. **Vercel detecta cambios automáticamente**
-3. **Build y deploy automático**
-4. **URL de producción actualizada**
-
-### Despliegue Manual
-
-```bash
-# Instalar Vercel CLI
-npm i -g vercel
-
-# Login
-vercel login
-
-# Deploy
-vercel --prod
-```
+El proyecto está configurado para auto-deploy desde la rama `main`. Cada push a GitHub desencadena un nuevo deploy.
 
 ### Configuración de Vercel
 
-#### `vercel.json`
-```json
-{
-  "builds": [
-    {
-      "src": "diplomas-frontend/package.json",
-      "use": "@vercel/next"
-    },
-    {
-      "src": "backend/src/server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "backend/src/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "diplomas-frontend/$1"
-    }
-  ]
-}
-```
+Las variables de entorno deben configurarse en el dashboard de Vercel bajo Settings > Environment Variables.
 
-## 📈 Monitoreo y Analytics
-
-### Vercel Analytics
-
-- **Páginas vistas**
-- **Sesiones de usuario**
-- **Rendimiento de la aplicación**
-- **Errores en producción**
-
-### Logs de Vercel
-
-```bash
-# Ver logs de producción
-vercel logs
-
-# Ver logs de un deployment específico
-vercel logs <deployment-url>
-```
-
-## 🔒 Seguridad
-
-### Configuración de Firebase Security Rules
-
-#### Firestore Rules
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Solo usuarios autenticados pueden leer/escribir
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
-```
-
-#### Storage Rules
-```
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
-```
-
-### Variables de Entorno Sensibles
-
-- Nunca commitear `.env` files
-- Usar variables de entorno de Vercel para producción
-- Rotar API keys periódicamente
-
-## 🚀 Optimizaciones y Mejoras Futuras
-
-### Rendimiento
-- [ ] Implementar caching de diseños
-- [ ] Optimizar carga de imágenes
-- [ ] Lazy loading de componentes
-- [ ] Code splitting
-
-### Funcionalidades
-- [ ] Autenticación de usuarios
-- [ ] Plantillas predefinidas
-- [ ] Exportación a múltiples formatos
-- [ ] Colaboración en tiempo real
-
-### DevOps
-- [ ] CI/CD pipeline completo
-- [ ] Tests automatizados
-- [ ] Monitoring avanzado
-- [ ] Backup automático
-
-## 📞 Soporte y Contacto
-
-**Desarrollador:**DinamicoPD
-
-**Email:** soporte@diplomas.com
+## 📞 Soporte
 
 **Repositorio:** https://github.com/dinamicoPD/Diploma_web
-
-**Documentación:** https://diplomas.com/docs
-
----
-
-**Última actualización:** Noviembre 2025
-**Versión:** 2.0

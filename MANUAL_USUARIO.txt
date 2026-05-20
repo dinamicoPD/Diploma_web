@@ -1,8 +1,8 @@
 ================================================================================
-                    MANUAL DE USUARIO - SISTEMA DE DIPLOMAS
+                     MANUAL DE USUARIO - SISTEMA DE DIPLOMAS
 ================================================================================
 
-Fecha de creación: Noviembre 2025
+Fecha de creación: Mayo 2026
 Versión: 2.0
 
 ================================================================================
@@ -291,7 +291,7 @@ SOLUCIÓN: Guarda el Excel con codificación UTF-8
 Para soporte técnico o reportar problemas:
 
 - Email: soporte@dinamicopd.com
-- Versión actual: 2.0 (Noviembre 2025)
+- Versión actual: 2.0 (Mayo 2026)
 
 ================================================================================
 ¡Gracias por usar el Sistema de Diplomas!
