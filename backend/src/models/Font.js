@@ -1,47 +1,69 @@
-// Modelo de Fuente usando Firestore
-const { db } = require('./db');
-
-// Colección de fuentes en Firestore
-const fontsCollection = db.collection('fonts');
+// Modelo de Fuente usando Supabase
+const { supabase } = require('../db');
 
 // Función para crear una nueva fuente
 async function createFont(fontData) {
-  const docRef = await fontsCollection.add({
-    ...fontData,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  });
-  return { id: docRef.id, ...fontData };
+  const { data, error } = await supabase
+    .from('fonts')
+    .insert([{
+      ...fontData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }])
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return { id: data.id, ...data };
 }
 
 // Función para obtener una fuente por ID
 async function getFontById(id) {
-  const doc = await fontsCollection.doc(id).get();
-  if (!doc.exists) {
-    return null;
-  }
-  return { id: doc.id, ...doc.data() };
+  const { data, error } = await supabase
+    .from('fonts')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) return null;
+  return { id: data.id, ...data };
 }
 
 // Función para obtener todas las fuentes
 async function getAllFonts() {
-  const snapshot = await fontsCollection.get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const { data, error } = await supabase
+    .from('fonts')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  return data.map(item => ({ id: item.id, ...item }));
 }
 
 // Función para actualizar una fuente
 async function updateFont(id, updateData) {
-  await fontsCollection.doc(id).update({
-    ...updateData,
-    updatedAt: new Date()
-  });
-  const doc = await fontsCollection.doc(id).get();
-  return { id: doc.id, ...doc.data() };
+  const { data, error } = await supabase
+    .from('fonts')
+    .update({
+      ...updateData,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return { id: data.id, ...data };
 }
 
 // Función para eliminar una fuente
 async function deleteFont(id) {
-  await fontsCollection.doc(id).delete();
+  const { error } = await supabase
+    .from('fonts')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
   return { id };
 }
 

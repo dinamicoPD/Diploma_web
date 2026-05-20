@@ -1,25 +1,14 @@
-// Firebase configuration for backend
-const { initializeApp } = require('firebase/app');
-const { getFirestore } = require('firebase/firestore');
+// Supabase configuration for backend
+const { createClient } = require('@supabase/supabase-js');
 
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY || "",
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN || "",
-  projectId: process.env.FIREBASE_PROJECT_ID || "",
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: process.env.FIREBASE_APP_ID || ""
-};
+const supabaseUrl = process.env.SUPABASE_URL || "";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || "";
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Initialize Cloud Firestore and get a reference to the service
-const db = getFirestore(app);
+// Initialize Supabase client
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function initDb() {
-  // Firebase no necesita inicialización adicional más allá de la configuración
-  console.log('Firebase initialized successfully');
+  console.log('Supabase initialized successfully');
 }
 
-module.exports = { db, initDb };
+module.exports = { supabase, initDb };

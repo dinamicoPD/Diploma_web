@@ -12,7 +12,7 @@ const uploadRoutes = require('./routes/upload'); // ADD THIS LINE
 require('dotenv').config();
 
 async function main() {
-  // 1) Inicializar Firebase
+  // 1) Inicializar Supabase
   await initDb();
 
   const app = express();

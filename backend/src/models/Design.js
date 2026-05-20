@@ -1,47 +1,69 @@
-// Modelo de Diseño usando Firestore
-const { db } = require('./db');
-
-// Colección de diseños en Firestore
-const designsCollection = db.collection('designs');
+// Modelo de Diseño usando Supabase
+const { supabase } = require('../db');
 
 // Función para crear un nuevo diseño
 async function createDesign(designData) {
-  const docRef = await designsCollection.add({
-    ...designData,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  });
-  return { id: docRef.id, ...designData };
+  const { data, error } = await supabase
+    .from('designs')
+    .insert([{
+      ...designData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }])
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return { id: data.id, ...data };
 }
 
 // Función para obtener un diseño por ID
 async function getDesignById(id) {
-  const doc = await designsCollection.doc(id).get();
-  if (!doc.exists) {
-    return null;
-  }
-  return { id: doc.id, ...doc.data() };
+  const { data, error } = await supabase
+    .from('designs')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) return null;
+  return { id: data.id, ...data };
 }
 
 // Función para obtener todos los diseños
 async function getAllDesigns() {
-  const snapshot = await designsCollection.get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const { data, error } = await supabase
+    .from('designs')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  return data.map(item => ({ id: item.id, ...item }));
 }
 
 // Función para actualizar un diseño
 async function updateDesign(id, updateData) {
-  await designsCollection.doc(id).update({
-    ...updateData,
-    updatedAt: new Date()
-  });
-  const doc = await designsCollection.doc(id).get();
-  return { id: doc.id, ...doc.data() };
+  const { data, error } = await supabase
+    .from('designs')
+    .update({
+      ...updateData,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return { id: data.id, ...data };
 }
 
 // Función para eliminar un diseño
 async function deleteDesign(id) {
-  await designsCollection.doc(id).delete();
+  const { error } = await supabase
+    .from('designs')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
   return { id };
 }
 

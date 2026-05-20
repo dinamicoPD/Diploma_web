@@ -1,47 +1,69 @@
-// Modelo de Elemento usando Firestore
-const { db } = require('./db');
-
-// Colección de elementos en Firestore
-const elementsCollection = db.collection('elements');
+// Modelo de Elemento usando Supabase
+const { supabase } = require('../db');
 
 // Función para crear un nuevo elemento
 async function createElement(elementData) {
-  const docRef = await elementsCollection.add({
-    ...elementData,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  });
-  return { id: docRef.id, ...elementData };
+  const { data, error } = await supabase
+    .from('elements')
+    .insert([{
+      ...elementData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }])
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return { id: data.id, ...data };
 }
 
 // Función para obtener un elemento por ID
 async function getElementById(id) {
-  const doc = await elementsCollection.doc(id).get();
-  if (!doc.exists) {
-    return null;
-  }
-  return { id: doc.id, ...doc.data() };
+  const { data, error } = await supabase
+    .from('elements')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) return null;
+  return { id: data.id, ...data };
 }
 
 // Función para obtener todos los elementos
 async function getAllElements() {
-  const snapshot = await elementsCollection.get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const { data, error } = await supabase
+    .from('elements')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  return data.map(item => ({ id: item.id, ...item }));
 }
 
 // Función para actualizar un elemento
 async function updateElement(id, updateData) {
-  await elementsCollection.doc(id).update({
-    ...updateData,
-    updatedAt: new Date()
-  });
-  const doc = await elementsCollection.doc(id).get();
-  return { id: doc.id, ...doc.data() };
+  const { data, error } = await supabase
+    .from('elements')
+    .update({
+      ...updateData,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return { id: data.id, ...data };
 }
 
 // Función para eliminar un elemento
 async function deleteElement(id) {
-  await elementsCollection.doc(id).delete();
+  const { error } = await supabase
+    .from('elements')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
   return { id };
 }
 

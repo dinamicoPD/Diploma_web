@@ -6,28 +6,28 @@ Sistema de creación y gestión de diplomas digitales con editor visual y almace
 
 - **Editor Visual**: Interfaz intuitiva para diseñar diplomas con elementos arrastrables
 - **Gestión de Fuentes**: Soporte para fuentes personalizadas (WOFF, WOFF2, TTF, OTF)
-- **Almacenamiento en Firebase**: Base de datos NoSQL y storage para archivos
+- **Almacenamiento en Supabase**: Base de datos PostgreSQL y storage para archivos
 - **API REST**: Backend con Express.js para operaciones CRUD
 - **Responsive**: Diseño adaptativo para diferentes dispositivos
 
 ## 🛠️ Tecnologías
 
 ### Frontend
-- **Next.js 14** - Framework React con App Router
+- **Next.js 16** - Framework React con App Router
 - **TypeScript** - Tipado estático
 - **Tailwind CSS** - Framework CSS utilitario
 - **React DnD** - Arrastrar y soltar elementos
-- **Firebase Client SDK** - Conexión con servicios de Firebase
+- **Supabase Client SDK** - Conexión con servicios de Supabase
 
 ### Backend
 - **Node.js** - Runtime JavaScript
 - **Express.js** - Framework web
-- **Firebase Firestore** - Base de datos NoSQL
+- **Supabase** - Base de datos PostgreSQL
 - **CORS** - Manejo de solicitudes cross-origin
 
 ### Base de Datos
-- **Firebase Firestore** - Base de datos en tiempo real
-- **Firebase Storage** - Almacenamiento de archivos
+- **Supabase** - Base de datos PostgreSQL
+- **Cloudinary** - Almacenamiento de archivos (imágenes y fuentes)
 
 ## 📁 Estructura del Proyecto
 
@@ -39,10 +39,10 @@ diplomas-web/
 │   │   │   ├── designs.js     # CRUD diseños
 │   │   │   ├── elements.js    # CRUD elementos
 │   │   │   ├── fonts.js       # CRUD fuentes
-│   │   │   └── images.js      # CRUD imágenes
-│   │   ├── models/            # Modelos de datos (legacy)
-│   │   ├── db.js              # Configuración Firebase
-│   │   ├── firebase.js        # Inicialización Firebase
+│   │   │   ├── images.js      # CRUD imágenes
+│   │   │   └── upload.js      # Subida de archivos
+│   │   ├── models/            # Modelos de datos (Supabase)
+│   │   ├── db.js              # Configuración Supabase
 │   │   └── server.js          # Servidor Express
 │   ├── .env                   # Variables de entorno
 │   └── package.json
@@ -51,19 +51,19 @@ diplomas-web/
 │   │   ├── app/               # App Router
 │   │   ├── components/        # Componentes React
 │   │   ├── lib/               # Utilidades y configuración
-│   │   └── types.ts           # Tipos TypeScript
-│   ├── .env.local             # Variables de entorno
+│   │   │   ├── supabaseClient.ts  # Cliente Supabase
+│   │   │   └── api.ts             # API helper functions
 │   └── package.json
-├── .gitignore                 # Archivos ignorados por Git
-└── README.md                  # Este archivo
+├── .gitignore
+└── README.md
 ```
 
 ## 🔧 Instalación y Configuración
 
 ### Prerrequisitos
 - Node.js 18+
-- npm o yarn
-- Cuenta de Firebase
+- npm
+- Cuenta de Supabase
 
 ### 1. Clonar el repositorio
 ```bash
@@ -71,11 +71,63 @@ git clone https://github.com/dinamicoPD/Diploma_web.git
 cd diplomas-web
 ```
 
-### 2. Configurar Firebase
-1. Crear proyecto en [Firebase Console](https://console.firebase.google.com/)
-2. Habilitar Firestore Database
-3. Habilitar Firebase Storage
-4. Obtener las credenciales del proyecto
+### 2. Configurar Supabase
+1. Crear proyecto en [Supabase Dashboard](https://app.supabase.com/)
+2. Crear las siguientes tablas en SQL Editor:
+
+```sql
+-- Tabla de diseños
+create table designs (
+  id uuid default uuid_generate_v4() primary key,
+  name text,
+  data jsonb,
+  medal_images jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- Tabla de fuentes
+create table fonts (
+  id uuid default uuid_generate_v4() primary key,
+  family text,
+  format text,
+  dataUrl text,
+  fileName text,
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- Tabla de elementos
+create table elements (
+  id uuid default uuid_generate_v4() primary key,
+  design_id uuid references designs(id),
+  type text,
+  x numeric,
+  y numeric,
+  w numeric,
+  h numeric,
+  z numeric,
+  properties jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- Tabla de imágenes
+create table images (
+  id uuid default uuid_generate_v4() primary key,
+  name text,
+  url text,
+  format text,
+  width numeric,
+  height numeric,
+  size numeric,
+  user_id text,
+  created_at timestamp with time zone default timezone('utc'::text, now()),
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+```
+
+3. Obtener las credenciales del proyecto (Settings > API)
 
 ### 3. Configurar Backend
 ```bash
@@ -85,18 +137,10 @@ npm install
 
 Crear archivo `.env` en `backend/`:
 ```env
-# Configuración de Firebase
-FIREBASE_API_KEY=your_api_key
-FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-FIREBASE_APP_ID=your_app_id
-
-# Puerto del servidor
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_ANON_KEY=your_anon_key
 PORT=4000
-
-# CORS
 CORS_ORIGIN=http://localhost:3000
 ```
 
@@ -108,12 +152,8 @@ npm install
 
 Crear archivo `.env.local` en `diplomas-frontend/`:
 ```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
@@ -134,55 +174,6 @@ La aplicación estará disponible en:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:4000
 
-### Despliegue en Producción
-
-#### Opción 1: Vercel (Recomendado - Todo Gratis)
-
-##### Paso 1: Instalar Vercel CLI
-```bash
-npm install -g vercel
-```
-
-##### Paso 2: Login en Vercel
-```bash
-vercel login
-```
-**Correo electrónico:** `dinamico.moodle@gmail.com`
-
-##### Paso 3: Desplegar
-```bash
-vercel --prod
-```
-
-##### Paso 4: URLs de producción
-Vercel te dará URLs como:
-- **Aplicación:** `https://diplomas-web.vercel.app`
-- **API:** `https://diplomas-web.vercel.app/api/*`
-
-#### Opción 2: Firebase (Requiere Plan Blaze)
-
-##### Paso 1: Login en Firebase
-```bash
-firebase login
-```
-**Correo electrónico:** `dinamico.moodle@gmail.com`
-
-##### Paso 2: Upgrade a Blaze Plan
-Ve a: https://console.firebase.google.com/project/diplomas-web-firebase/usage/details
-
-##### Paso 3: Desplegar
-```bash
-firebase deploy
-```
-
-##### Paso 4: URLs de producción
-- **Aplicación:** `https://diplomas-web-firebase.web.app`
-- **API:** `https://us-central1-diplomas-web-firebase.cloudfunctions.net/api`
-
-#### Ver guías completas de despliegue
-- [`DEPLOYMENT.md`](DEPLOYMENT.md) - Guía completa de Firebase
-- [Documentación de Vercel](https://vercel.com/docs) - Para despliegue con Vercel
-
 ## 📡 API Endpoints
 
 ### Diseños
@@ -194,31 +185,31 @@ firebase deploy
 
 ### Elementos
 - `GET /api/elements` - Listar todos los elementos
-- `GET /api/elements/:id` - Obtener elemento por ID
 - `POST /api/elements` - Crear nuevo elemento
 - `PUT /api/elements/:id` - Actualizar elemento
 - `DELETE /api/elements/:id` - Eliminar elemento
 
 ### Fuentes
 - `GET /api/fonts` - Listar todas las fuentes
-- `GET /api/fonts/:id` - Obtener fuente por ID
 - `POST /api/fonts` - Crear nueva fuente
 - `PUT /api/fonts/:id` - Actualizar fuente
 - `DELETE /api/fonts/:id` - Eliminar fuente
 
 ### Imágenes
 - `GET /api/images` - Listar todas las imágenes
-- `GET /api/images/:id` - Obtener imagen por ID
 - `POST /api/images` - Crear nueva imagen
-- `PUT /api/images/:id` - Actualizar imagen
 - `DELETE /api/images/:id` - Eliminar imagen
+
+### Subida de archivos
+- `POST /api/upload/image` - Subir imagen a Cloudinary
+- `POST /api/upload/font` - Subir fuente a Cloudinary
 
 ## 🔒 Seguridad
 
 - Variables de entorno para credenciales sensibles
-- Validación de entrada en endpoints
+- Service Role Key solo en el backend
+- Anon Key solo en el frontend
 - CORS configurado para origen específico
-- Archivos sensibles excluidos del repositorio (.gitignore)
 
 ## 🤝 Contribución
 
@@ -230,12 +221,8 @@ firebase deploy
 
 ## 📝 Licencia
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
-
-## 📞 Contacto
-
-Proyecto desarrollado para gestión de diplomas digitales.
+Este proyecto está bajo la Licencia MIT.
 
 ---
 
-**Nota**: Asegúrate de configurar correctamente las variables de entorno de Firebase antes de ejecutar la aplicación.
+**Nota**: Asegúrate de configurar correctamente las variables de entorno de Supabase antes de ejecutar la aplicación.

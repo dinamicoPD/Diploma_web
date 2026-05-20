@@ -3,6 +3,7 @@ const router = express.Router();
 const cloudinary = require('../lib/cloudinary');
 const fileUpload = require('express-fileupload');
 const { v4: uuidv4 } = require('uuid');
+const { supabase } = require('../db');
 
 // Configure file upload middleware
 router.use(fileUpload({
@@ -11,8 +12,7 @@ router.use(fileUpload({
   createParentPath: true
 }));
 
-// Middleware to extract user ID from Firebase Auth token
-// In a real app, you'd verify the token with Firebase Admin SDK
+// Middleware to extract user ID from Supabase Auth token
 // For now, we'll expect the frontend to send userId in a custom header
 const extractUserId = (req, res, next) => {
   const userId = req.headers['x-user-id'] || req.body.userId;
@@ -50,7 +50,7 @@ router.post('/image', extractUserId, async (req, res) => {
       resource_type: 'auto'
     });
 
-    // Prepare metadata for Firestore
+    // Prepare metadata for Supabase
     const imageData = {
       name: file.name || 'Unnamed image',
       url: result.secure_url,
@@ -58,15 +58,22 @@ router.post('/image', extractUserId, async (req, res) => {
       width: result.width,
       height: result.height,
       size: result.bytes,
-      userId: req.userId,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      user_id: req.userId,
     };
 
-    // Save metadata to Firestore using existing Image model
-    const { Image } = require('../models/Image');
-    const savedImage = await Image.create(imageData);
-    
+    // Save metadata to Supabase
+    const { data: savedImage, error } = await supabase
+      .from('images')
+      .insert([{
+        ...imageData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
     // Clean up temporary file
     const fs = require('fs');
     if (fs.existsSync(file.tempFilePath)) {
@@ -128,20 +135,27 @@ router.post('/font', extractUserId, async (req, res) => {
       resource_type: 'raw' // Important for font files
     });
 
-    // Prepare metadata for Firestore
+    // Prepare metadata for Supabase
     const fontData = {
       name: file.name || 'Unnamed font',
       url: result.secure_url,
       format: fileExtension,
-      userId: req.userId,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      user_id: req.userId,
     };
 
-    // Save metadata to Firestore using existing Font model
-    const { Font } = require('../models/Font');
-    const savedFont = await Font.create(fontData);
-    
+    // Save metadata to Supabase
+    const { data: savedFont, error } = await supabase
+      .from('fonts')
+      .insert([{
+        ...fontData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
     // Clean up temporary file
     const fs = require('fs');
     if (fs.existsSync(file.tempFilePath)) {

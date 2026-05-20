@@ -1,47 +1,69 @@
-// Modelo de Imagen usando Firestore
-const { db } = require('./db');
-
-// Colección de imágenes en Firestore
-const imagesCollection = db.collection('images');
+// Modelo de Imagen usando Supabase
+const { supabase } = require('../db');
 
 // Función para crear una nueva imagen
 async function createImage(imageData) {
-  const docRef = await imagesCollection.add({
-    ...imageData,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  });
-  return { id: docRef.id, ...imageData };
+  const { data, error } = await supabase
+    .from('images')
+    .insert([{
+      ...imageData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }])
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return { id: data.id, ...data };
 }
 
 // Función para obtener una imagen por ID
 async function getImageById(id) {
-  const doc = await imagesCollection.doc(id).get();
-  if (!doc.exists) {
-    return null;
-  }
-  return { id: doc.id, ...doc.data() };
+  const { data, error } = await supabase
+    .from('images')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) return null;
+  return { id: data.id, ...data };
 }
 
 // Función para obtener todas las imágenes
 async function getAllImages() {
-  const snapshot = await imagesCollection.get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const { data, error } = await supabase
+    .from('images')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  return data.map(item => ({ id: item.id, ...item }));
 }
 
 // Función para actualizar una imagen
 async function updateImage(id, updateData) {
-  await imagesCollection.doc(id).update({
-    ...updateData,
-    updatedAt: new Date()
-  });
-  const doc = await imagesCollection.doc(id).get();
-  return { id: doc.id, ...doc.data() };
+  const { data, error } = await supabase
+    .from('images')
+    .update({
+      ...updateData,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return { id: data.id, ...data };
 }
 
 // Función para eliminar una imagen
 async function deleteImage(id) {
-  await imagesCollection.doc(id).delete();
+  const { error } = await supabase
+    .from('images')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
   return { id };
 }
 
