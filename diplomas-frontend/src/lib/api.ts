@@ -1,6 +1,10 @@
 // Usando Supabase para datos y nuestro backend para almacenamiento de archivos (Cloudinary)
 
 import { supabase } from './supabaseClient';
+// DIPLOMA_STORAGE_V1
+import { createStorageFont, fetchLegacyAndStorageFonts, deleteStorageOrLegacyFont } from './storageAssets';
+
+import { uploadImage, uploadFont } from './uploadClient';
 
 // Tipos
 export interface FontData {
@@ -26,50 +30,13 @@ export interface DesignData {
 
 // Funciones para Fuentes (usando Supabase)
 export async function fetchFonts(): Promise<FontData[]> {
-  try {
-    const { data, error } = await supabase
-      .from('fonts')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    
-    return data.map(font => ({
-      id: font.id,
-      ...font,
-      createdAt: font.created_at || new Date().toISOString(),
-      updatedAt: font.updated_at || new Date().toISOString(),
-    })) as FontData[];
-  } catch (error) {
-    console.error('Error fetching fonts:', error);
-    return [];
-  }
+  return fetchLegacyAndStorageFonts();
 }
-
 export async function createFont(data: Omit<FontData, 'id' | 'createdAt' | 'updatedAt'>): Promise<FontData> {
-  const { data: newFont, error } = await supabase
-    .from('fonts')
-    .insert([{
-      ...data,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }])
-    .select()
-    .single();
-  
-  if (error) throw error;
-  
-  return {
-    id: newFont.id,
-    ...newFont,
-    createdAt: newFont.created_at,
-    updatedAt: newFont.updated_at,
-  };
+  return createStorageFont(data);
 }
-
 export async function deleteFont(id: string): Promise<void> {
-  const { error } = await supabase.from('fonts').delete().eq('id', id);
-  if (error) throw error;
+  return deleteStorageOrLegacyFont(id);
 }
 
 // Funciones para Diseños (usando Supabase)
@@ -194,79 +161,9 @@ export async function importDesigns(designsToImport: DesignData[]): Promise<void
 }
 
 // NUEVAS FUNCIONES PARA SUBIR ARCHIVOS A TRAVÉS DEL BACKEND (usando Cloudinary)
-export async function uploadImage(file: File): Promise<string> {
-  try {
-    const formData = new FormData();
-    formData.append('image', file);
-    
-    // Get Supabase session for user identification
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      throw new Error('User not authenticated');
-    }
-    
-    const accessToken = session.access_token;
-    
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/image`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'X-User-ID': session.user.id,
-      },
-      body: formData
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to upload image');
-    }
-    
-    const result = await response.json();
-    return result.url; // Return the Cloudinary URL
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    throw error;
-  }
-}
+// DIPLOMA_AUTH_UPLOAD_V1
+export { uploadImage, uploadFont };
 
-export async function uploadFont(file: File): Promise<string> {
-  try {
-    const formData = new FormData();
-    formData.append('font', file);
-    
-    // Get Supabase session for user identification
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      throw new Error('User not authenticated');
-    }
-    
-    const accessToken = session.access_token;
-    
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/font`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'X-User-ID': session.user.id,
-      },
-      body: formData
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to upload font');
-    }
-    
-    const result = await response.json();
-    return result.url; // Return the Cloudinary URL
-  } catch (error) {
-    console.error('Error uploading font:', error);
-    throw error;
-  }
-}
-
-// Mantener las funciones de imagen existentes para compatibilidad (ahora usan el backend)
 export async function saveImage(dataUrl: string, filename: string): Promise<string> {
   // Convert dataUrl to Blob for upload
   const response = await fetch(dataUrl);

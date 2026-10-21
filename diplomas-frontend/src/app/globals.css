@@ -307,3 +307,45 @@ html, body { background: linear-gradient(180deg,#fff 0,var(--brand-bg) 100%); }
   }
 }
 
+
+/* Diploma Web: ajuste visual de papel independiente de sus dimensiones de impresion */
+.editor-canvas-scroll {
+  display: flex;
+  align-items: flex-start;
+  padding: 18px;
+  width: 100%;
+  min-width: 0;
+}
+.editor-paper-stage {
+  position: relative;
+  flex: 0 0 auto;
+  margin: 0 auto;
+}
+.editor-paper-stage > .paper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  max-width: none;
+}
+/* La regla antigua de movil no debe sobrescribir el zoom calculado. */
+@media (max-width: 768px) {
+  .editor-paper-stage > .paper { transform-origin: top left; }
+  .lotes-preview-col .paper { transform: none; }
+}
+
+/* DIPLOMA_WEB_PRINT_PROOF_V1: ocultar contornos de seleccion */
+.paper[data-exporting="true"] .rnd-selected { outline: none !important; box-shadow: none !important; }
+.paper[data-exporting="true"] .react-resizable-handle { display: none !important; }
+
+/* DINAMICO_DIPLOMA_SHAPES_V5: al exportar, ocultar las herramientas de edicion,
+   pero conservar siempre las formas impresas en el papel. */
+.paper[data-exporting="true"] .diploma-shapes-edit-overlay {
+  display: none !important;
+}
+.diploma-shapes-static {
+  pointer-events: none !important;
+}
+@media print {
+  .diploma-shapes-edit-overlay { display: none !important; }
+}

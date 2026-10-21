@@ -1,15 +1,27 @@
 /* eslint-disable @next/next/no-img-element,@typescript-eslint/no-unused-vars */
 
 'use client';
+import { editableBoundsPx, editableMarginsStyle, type EditableMarginsCm } from '@/lib/editableArea'; // DINAMICO_EDITABLE_AREA_V6
+
+import { DiplomaShapesLayer, type DiplomaShape } from '@/components/editor/DiplomaShapes'; // DINAMICO_DIPLOMA_SHAPES_V5
+// DIPLOMA_STORAGE_V1
+import AuthGate from '@/components/auth/AuthGate';
+import StorageImage from '@/components/storage/StorageImage';
+import { paperLayerStyle } from '@/lib/layerGeometry'; // DIPLOMA_EDITOR_LIBRARY_V4
+import StorageStatus from '@/components/storage/StorageStatus';
+import { prepareAssetsForExport } from '@/lib/storageRender';
+import { reportStorageError } from '@/lib/storageAssets';
+
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Row, Col, Form, Button, Table, Alert, ProgressBar } from 'react-bootstrap';
 import * as htmlToImage from 'html-to-image';
 import * as XLSX from 'xlsx';
 import { fetchDesigns, DesignData as ApiDesignData } from '@/lib/api';
+import { getPaperSizeInches } from '@/lib/paperSizes';
 
 /* ==== Tipos ==== */
-type Format = 'letter' | 'legal';
+type Format = 'letter' | 'legal' | 'custom';
 type Orientation = 'portrait' | 'landscape';
 type BaseElement = { id: string; type: 'text' | 'image' | 'medal'; x: number; y: number; w: number; h: number; z: number; };
 type TextElement = BaseElement & { type: 'text'; text: string; fontSize: number; color: string; fontFamily: string; bold: boolean; italic: boolean; align: 'left'|'center'|'right'; };
@@ -18,7 +30,18 @@ type MedalElement = BaseElement & { type: 'medal'; previewVariant: 1|2|3; lockAs
 type CanvasElement = TextElement | ImageElement | MedalElement;
 
 type MedalImages = Partial<Record<1|2|3, string>>;
-type DesignData = { format: Format; orientation: Orientation; dpi: 150|200|300; backgroundUrl?: string; elements: CanvasElement[]; medalImages?: MedalImages; };
+// DINAMICO_WATERMARK_PATCH_V3
+type DiplomaLayer = {
+  xPct?: number; yPct?: number; widthPct?: number; heightPct?: number;
+  url: string;
+  opacity: number;
+  visible: boolean;
+  fit: 'contain' | 'cover';
+};
+
+type DesignData = { editableMarginsCm?: EditableMarginsCm;  pageShapes?: DiplomaShape[];
+  watermarkImage?: DiplomaLayer | null;
+  backgroundLinkedImage?: DiplomaLayer | null; format: Format; orientation: Orientation; dpi: 150|200|300; customSizeCm?: {width:number;height:number}; backgroundUrl?: string; elements: CanvasElement[]; medalImages?: MedalImages; };
 type DesignSnapshot = ApiDesignData;
 
 /* ==== Utils ==== */
@@ -78,21 +101,11 @@ const buildCiudadDepto = (row: Record<string, unknown>): string => {
 const waitForFonts = async () => {
   if (document.fonts?.ready) { try { await document.fonts.ready; } catch {} }
 };
-const waitForImages = async (root: HTMLElement) => {
-  const imgs = Array.from(root.querySelectorAll('img'));
-  await Promise.all(imgs.map(img => {
-    if ((img as HTMLImageElement).complete) return Promise.resolve();
-    return new Promise<void>(resolve => {
-      (img as HTMLImageElement).decode?.().then(()=>resolve()).catch(()=>resolve());
-      img.addEventListener('load', ()=>resolve(), { once:true });
-      img.addEventListener('error', ()=>resolve(), { once:true });
-    });
-  }));
-};
+const waitForImages = prepareAssetsForExport;
 
 /* ================================================================== */
 
-export default function LotesPage() {
+function LotesContent() {
   // Diseños
   const [designs, setDesigns] = useState<ApiDesignData[]>([]);
   const [designsLoading, setDesignsLoading] = useState(true);
@@ -225,13 +238,12 @@ export default function LotesPage() {
     const sede = String(r.sede ?? '');
 
     // Clamp elements to safe area
-    const inches = selected.data.format === 'letter'
-      ? (selected.data.orientation === 'portrait' ? { w: 8.5, h: 11 } : { w: 11, h: 8.5 })
-      : (selected.data.orientation === 'portrait' ? { w: 8.5, h: 13 } : { w: 13, h: 8.5 });
+    const inches = getPaperSizeInches(selected.data.format, selected.data.orientation, selected.data.customSizeCm);
     const widthPx = Math.round(inches.w * INCH);
     const heightPx = Math.round(inches.h * INCH);
-    const safeW = widthPx - 4 * CM;
-    const safeH = heightPx - 4 * CM;
+    const editableBounds = editableBoundsPx(widthPx, heightPx, selected.data.editableMarginsCm, CM);
+    const safeW = editableBounds.width;
+    const safeH = editableBounds.height;
     const clampedElements = (selected.data.elements as CanvasElement[]).map(e => {
       let { x, y, w, h } = e;
       if (w > safeW) w = safeW;
@@ -246,9 +258,10 @@ export default function LotesPage() {
     return clampedElements.map(el => {
       if (el.type === 'text') {
         const t = el as TextElement;
-        if (t.id === mapInstituto)   return { ...t, text: String(r.instituto ?? '').toUpperCase() };
+       
+        if (t.id === mapInstituto)   return { ...t, text: String(r.instituto ?? '') };
         if (t.id === mapEstudiante)  return { ...t, text: String(r.estudiante ?? '') };
-        if (t.id === mapLugar)       return { ...t, text: placeLabel };
+        if (t.id === mapLugar)       return { ...t, text: String(r.lugar ?? '') };
         if (t.id === mapGrado)       return { ...t, text: String(r.grado ?? '') };
         if (t.id === mapFecha)       return { ...t, text: fechaFmt };
         if (t.id === mapCiudadDepto) return { ...t, text: ciudadDepto };
@@ -272,10 +285,9 @@ export default function LotesPage() {
   // Export PNG (fila actual)
   const exportRowPNG = async () => {
     if (!selected || !selected.data || !paperRef.current) return;
+    try {
     const { format, orientation, dpi } = selected.data;
-    const inches = format === 'letter'
-      ? (orientation === 'portrait' ? { w: 8.5, h: 11 } : { w: 11, h: 8.5 })
-      : (orientation === 'portrait' ? { w: 8.5, h: 13 } : { w: 13, h: 8.5 });
+    const inches = getPaperSizeInches(format, orientation, selected.data.customSizeCm);
     const widthPx  = Math.round(inches.w * INCH);
     const heightPx = Math.round(inches.h * INCH);
     paperRef.current.setAttribute('data-exporting', 'true');
@@ -283,13 +295,15 @@ export default function LotesPage() {
     await waitForImages(paperRef.current);
     const data = await htmlToImage.toPng(paperRef.current!, {
       width: widthPx, height: heightPx, pixelRatio: (selected.data.dpi ?? 300)/96,
-      backgroundColor:'#ffffff', cacheBust:true,
+      backgroundColor:'#ffffff', cacheBust: false,
       style:{transform:'none',width:`${widthPx}px`,height:`${heightPx}px`,margin:'0',padding:'0',boxShadow:'none'},
       filter: (el) => !(el instanceof HTMLElement && (el.classList.contains('paper-guides') || el.classList.contains('paper-size-badge'))),
     });
     paperRef.current.removeAttribute('data-exporting');
     const name = rows[selectedIndex]?.estudiante ? String(rows[selectedIndex].estudiante).replace(/[^\w\- ]+/g,'') : 'diploma';
     const a = document.createElement('a'); a.href = data; a.download = `${name}.png`; a.click();
+    } catch (error) { reportStorageError(error); }
+    finally { paperRef.current?.removeAttribute('data-exporting'); }
   };
 
   // Export TODO a un PDF (con progreso)
@@ -302,9 +316,7 @@ export default function LotesPage() {
     try {
       const { jsPDF } = await import('jspdf');
       const { format, orientation, dpi } = selected.data;
-      const inches = format === 'letter'
-        ? (orientation === 'portrait' ? { w: 8.5, h: 11 } : { w: 11, h: 8.5 })
-        : (orientation === 'portrait' ? { w: 8.5, h: 13 } : { w: 13, h: 8.5 });
+      const inches = getPaperSizeInches(format, orientation, selected.data.customSizeCm);
       const pageWpt = inches.w * 72;
       const pageHpt = inches.h * 72;
       const pdf = new jsPDF({ orientation: orientation === 'landscape' ? 'landscape' : 'portrait', unit:'pt', format:[pageWpt,pageHpt], compress:true });
@@ -327,7 +339,7 @@ export default function LotesPage() {
         await waitForImages(paperRef.current);
 
         const dataUrl = await htmlToImage.toPng(paperRef.current, {
-          width:widthPx, height:heightPx, pixelRatio:pxRatio, backgroundColor:'#ffffff', cacheBust:true,
+          width:widthPx, height:heightPx, pixelRatio:pxRatio, backgroundColor:'#ffffff', cacheBust: false,
           style:{transform:'none',width:`${widthPx}px`,height:`${heightPx}px`,margin:'0',padding:'0',boxShadow:'none'},
           filter: (el) => !(el instanceof HTMLElement && (el.classList.contains('paper-guides') || el.classList.contains('paper-size-badge'))),
         });
@@ -342,7 +354,10 @@ export default function LotesPage() {
       }
 
       pdf.save(`diplomas_${rows.length}.pdf`);
+    } catch (error) {
+      reportStorageError(error);
     } finally {
+      paperRef.current?.removeAttribute('data-exporting');
       setExporting(false);
     }
   };
@@ -350,13 +365,14 @@ export default function LotesPage() {
   const paperClass = useMemo(() => {
     if (!selected || !selected.data) return 'paper letter-portrait';
     const { format, orientation } = selected.data;
-    return 'paper ' + (format === 'letter'
+    return 'paper ' + (format === 'custom' ? 'custom-paper' : format === 'letter'
       ? (orientation === 'portrait' ? 'letter-portrait' : 'letter-landscape')
-      : (orientation === 'portrait' ? 'legal-portrait'  : 'legal-landscape'));
+      : (orientation === 'portrait' ? 'legal-portrait' : 'legal-landscape'));
   }, [selected]);
 
   return (
     <div className="py-4 page-content">
+      <StorageStatus fontAssets={selected?.data?.fontAssets} loadFonts />
       <h1 className="h4 fw-bold mb-3">Lotes: diseños + Excel + medallas</h1>
 
       <Row className="g-4">
@@ -497,21 +513,31 @@ export default function LotesPage() {
         {/* Vista previa */}
         <Col lg={8} className="lotes-preview-col">
           {selected && selected.data ? (
-            <div ref={paperRef} className={paperClass}>
-              {selected.data.backgroundUrl && <img className="paper-bg" src={selected.data.backgroundUrl} alt="" />}
+            <div ref={paperRef} className={paperClass} style={selected?.data ? (() => {
+              const size = getPaperSizeInches(selected.data.format, selected.data.orientation, selected.data.customSizeCm);
+              return {width: Math.round(size.w * INCH), height: Math.round(size.h * INCH)};
+            })() : undefined}>
+              {selected.data.backgroundUrl && <StorageImage className="paper-bg" src={selected.data.backgroundUrl} alt="" />}
 
+              {/* DINAMICO_WATERMARK_PATCH_V3: capas del diseno guardado */}
+              {selected.data.backgroundLinkedImage?.visible && <StorageImage className="paper-bg" src={selected.data.backgroundLinkedImage.url} alt="Fondo vinculado" draggable={false}
+                style={paperLayerStyle(selected.data.backgroundLinkedImage, 0)} />}
+              {selected.data.watermarkImage?.visible && <StorageImage className="paper-bg" src={selected.data.watermarkImage.url} alt="Marca de agua" draggable={false}
+                style={paperLayerStyle(selected.data.watermarkImage, 2)} />}
+              {/* DINAMICO_DIPLOMA_SHAPES_V5: marcos incluidos en lotes y PDF */}
+              <DiplomaShapesLayer shapes={((selected.data as DesignData).pageShapes ?? [])} />
               <div className="content">
-                {/* Mantén márgenes de 2 cm */}
-                <div className="safe-area">
+                {/* Zona editable guardada en el diseno */}
+                <div className="safe-area" style={editableMarginsStyle(selected.data.editableMarginsCm)}>
                   {substitutedElements.slice().sort((a,b)=>a.z-b.z).map(el => {
                     const styleCommon: React.CSSProperties = { position:'absolute', left: el.x, top: el.y, width: el.w, height: el.h, zIndex: el.z };
                     if (el.type === 'image') {
-                      return <div key={el.id} style={styleCommon}><img src={(el as ImageElement).src} alt="" style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}}/></div>;
+                      return <div key={el.id} style={styleCommon}><StorageImage src={(el as ImageElement).src} alt="" style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}}/></div>;
                     }
                     if (el.type === 'medal') {
                       const place = (el as MedalElement).previewVariant as 1|2|3;
                       const src = place === 1 ? medal1 : place === 2 ? medal2 : medal3;
-                      return <div key={el.id} style={styleCommon}><img src={src} alt={`Medalla ${place}`} style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}}/></div>;
+                      return <div key={el.id} style={styleCommon}><StorageImage src={src} alt={`Medalla ${place}`} style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}}/></div>;
                     }
                     const t = el as TextElement;
                     return (
@@ -539,3 +565,7 @@ export default function LotesPage() {
   );
 }
 
+
+export default function LotesPage() {
+  return <AuthGate><LotesContent /></AuthGate>;
+}

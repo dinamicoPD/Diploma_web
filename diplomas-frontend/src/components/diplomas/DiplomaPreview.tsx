@@ -1,6 +1,9 @@
 /* eslint-disable @next/next/no-img-element,@typescript-eslint/no-unused-vars */
 
 'use client';
+// DIPLOMA_STORAGE_V1
+import StorageImage from '@/components/storage/StorageImage';
+
 
 import React from 'react';
 
@@ -71,23 +74,23 @@ const DiplomaPreview = React.forwardRef<HTMLDivElement, DiplomaData>(
         ref={ref}
         className={paperClass}
         style={{
-          backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : undefined,
           backgroundColor: '#ffffff',
         }}
       >
+        {backgroundUrl && <StorageImage src={backgroundUrl} className="paper-bg" alt="" />}
         <div className="content">
           {/* ===== Encabezado: Empresa | Festival | Colegio ===== */}
           <div className="festival-header">
             {/* Izquierda: empresa */}
             <div className="side side--left">
-              {companyLogoUrl ? <img src={companyLogoUrl} alt="Logo de la empresa" className="logo" /> : null}
+              {companyLogoUrl ? <StorageImage src={companyLogoUrl} alt="Logo de la empresa" className="logo" /> : null}
             </div>
 
             {/* Centro: línea + banner + institución */}
             <div className="festival-center">
               <div className="line" />
               {festivalBannerUrl ? (
-                <img src={festivalBannerUrl} alt="Banner del festival" className="banner" />
+                <StorageImage src={festivalBannerUrl} alt="Banner del festival" className="banner" />
               ) : (
                 <span className="banner-fallback">{festivalName || 'Festival'}</span>
               )}
@@ -96,7 +99,7 @@ const DiplomaPreview = React.forwardRef<HTMLDivElement, DiplomaData>(
 
             {/* Derecha: colegio */}
             <div className="side side--right">
-              {schoolLogoUrl ? <img src={schoolLogoUrl} alt="Logo del colegio" className="logo" /> : null}
+              {schoolLogoUrl ? <StorageImage src={schoolLogoUrl} alt="Logo del colegio" className="logo" /> : null}
             </div>
           </div>
 
@@ -118,7 +121,7 @@ const DiplomaPreview = React.forwardRef<HTMLDivElement, DiplomaData>(
             {/* Insignia del lugar */}
             <div className="badge-wrap">
               {badgeUrl ? (
-                <img src={badgeUrl} alt={placeLabel(place)} />
+                <StorageImage src={badgeUrl} alt={placeLabel(place)} />
               ) : (
                 <div style={{ fontWeight: 800 }}>{placeLabel(place)}</div>
               )}
