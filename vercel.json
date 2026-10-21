@@ -10,16 +10,21 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/src/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/diplomas-frontend/$1"
-    }
-  ],
+  
+"routes": [
+  {
+    "src": "/api/(.*)",
+    "dest": "/backend/src/server.js"
+  },
+  {
+    "handle": "filesystem"
+  },
+  {
+    "src": "/(.*)",
+    "dest": "/diplomas-frontend/$1"
+  }
+]
+
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "",
